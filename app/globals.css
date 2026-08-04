@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-montserrat: 'Montserrat', sans-serif;
+    --font-inter: 'Inter', sans-serif;
+    --font-jetbrains: 'JetBrains Mono', monospace;
+  }
+
+  * {
+    @apply border-outline-variant;
+  }
+
+  body {
+    @apply bg-surface text-on-surface;
+  }
+}
+
+@layer components {
+  /* Circuit & Legacy Design System Components */
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded px-4 py-2 font-montserrat text-sm font-bold uppercase tracking-wider text-white bg-primary-container border border-tech-black transition-colors hover:bg-tech-black;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded px-4 py-2 font-montserrat text-sm font-bold uppercase tracking-wider text-primary-container bg-transparent border border-primary-container transition-colors hover:bg-primary-container hover:text-white;
+  }
+
+  .btn-tertiary {
+    @apply inline-flex items-center justify-center gap-2 rounded px-4 py-2 font-montserrat text-sm font-medium text-on-surface transition-colors hover:bg-surface-container;
+  }
+
+  .input-field {
+    @apply w-full rounded border border-wire-gray bg-white px-3 py-2 text-sm text-on-surface placeholder:text-on-surface-variant focus:border-2 focus:border-tech-black focus:outline-none;
+  }
+
+  .card {
+    @apply rounded-lg border border-tech-black bg-white p-4;
+  }
+
+  .card-accent {
+    @apply rounded-lg border border-tech-black bg-white p-4 border-l-4 border-l-primary-container;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1 rounded border border-tech-black px-2 py-0.5 font-mono text-xs uppercase tracking-wider text-on-surface;
+  }
+
+  .chip-active {
+    @apply inline-flex items-center gap-1 rounded border border-tech-black px-2 py-0.5 font-mono text-xs uppercase tracking-wider text-tech-black bg-circuit-yellow;
+  }
+
+  .label-mono {
+    @apply font-mono text-xs uppercase tracking-wider text-on-surface-variant;
+  }
+
+  .nav-link {
+    @apply px-3 py-2 text-sm font-medium text-on-surface transition-colors hover:text-primary-container border-b-2 border-transparent hover:border-primary-container;
+  }
+
+  .nav-link-active {
+    @apply px-3 py-2 text-sm font-medium text-primary-container border-b-2 border-primary-container;
+  }
+
+  .section-title {
+    @apply font-montserrat text-2xl font-bold text-on-surface;
+  }
+
+  .hero-title {
+    @apply font-montserrat text-4xl md:text-5xl font-bold tracking-tight text-on-surface;
+  }
+
+  .status-dot {
+    @apply inline-block h-2 w-2 rounded-full;
+  }
+
+  .status-dot-active {
+    @apply inline-block h-2 w-2 rounded-full bg-primary-container;
+  }
+
+  .status-dot-inactive {
+    @apply inline-block h-2 w-2 rounded-full bg-wire-gray;
+  }
+}
