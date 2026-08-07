@@ -299,3 +299,32 @@ DONE — app is live. Track Next.js upgrade (§5.5) as the first maintenance ite
 ---
 
 *Prepared following the code-review-checklist methodology (context → functionality → quality → security → performance → tests). Validation performed: `bunx tsc --noEmit` ✅, `bun run build` ✅ (27/27 routes), `bun audit` ⚠️ (27 advisories), deploy-script source review ⚠️ (3 defects), secrets grep ✅.*
+
+---
+
+## 12. Deployment Progress Log
+
+**Date: 2026-08-05 — Live deployment session (Supabase project `zotizozgkzzuhrwbxoud`)**
+
+| Step | Status | Evidence / Notes |
+|------|--------|------------------|
+| Credentials in `.env` (gitignored) | DONE | New-style keys (`sb_publishable_` / `sb_secret_`); prior `.env` backed up to `.env.backup-20260805` |
+| REST + Auth API reachable | DONE | `/rest/v1/` returns 404 (auth OK, relation missing); `/auth/v1/health` 200 |
+| Schema present in project | BLOCKED | Fresh project — all 15 tables return 404. CROSS_CHECK's "schema deployed" assumption was WRONG. Must apply `supabase/schema.sql` (one-time SQL Editor paste, or CLI push after `supabase link`) |
+| Storage buckets created | DONE | `avatars` (public), `gallery` (public), `resumes` (private) via Storage REST API with service key |
+| Storage policies | PENDING | SQL written at `supabase/storage-policies.sql` — apply in SQL Editor after schema (idempotent) |
+| Migrations dir | DONE | `supabase/migrations/0001_init.sql` = copy of `schema.sql` (for future CLI pushes) |
+| Auth Admin API (service key) | DONE | `GET /auth/v1/admin/users` -> 200, empty list. `create-admin.sh` will work |
+| Admin user | PENDING | Needs admin email/password/name (interactive) |
+| Auth URL config | PENDING | Dashboard -> Authentication -> URL Configuration (Site URL + email redirects) |
+| Vercel deploy | PENDING | Needs git-push/auto-build or `VERCEL_*` tokens |
+| Keep-alive workflow | PENDING | Exists; needs GitHub secrets `SUPABASE_URL` + `SUPABASE_ANON_KEY` |
+
+**Security:** `SUPABASE_SERVICE_ROLE_KEY` (sb_secret) bypasses RLS — kept local-only; **rotate it in the dashboard after deploy** (it was shared in plaintext chat). Never put it in `NEXT_PUBLIC_*` or Vercel.
+
+**Update (same day) — schema applied via direct DB connection:**
+- Root cause of the failed SQL-editor paste: `CREATE POLICY "auth_insert_skills" ... FOR INSERT USING (...)` — Postgres requires `WITH CHECK` for INSERT policies (error 42601). Fixed in `supabase/schema.sql` (USING -> WITH CHECK); `supabase/migrations/0001_init.sql` re-synced.
+- Created `supabase/reset.sql` (idempotent drop of all ILUNI objects) and generated `supabase/apply-all.sql` (reset + schema + storage policies, one-shot).
+- Applied via `psql` to `db.zotizozgkzzuhrwbxoud.supabase.co` as superuser `postgres` (the `webapps` role the user provided failed auth; postgres user works and is preferable — schema owned by superuser keeps `is_admin()` SECURITY DEFINER able to read `auth.users`).
+- Verified live: 15 tables, 6 enums, 15 seed skills, RLS enabled on all 15 tables, 54 public + 8 storage policies, `is_admin()` executes without error.
+- `DATABASE_URL` added to gitignored `.env` (percent-encoded password).
