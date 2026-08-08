@@ -9,7 +9,7 @@ import ReferralForm from './ReferralForm';
 import type { JobPostingRow } from '@/lib/types';
 
 export const metadata: Metadata = {
-  title: 'Minta Referral - ILUNI FTE UNPAK',
+  title: 'Minta Referral - ILUNI FT ELEKTRO UNPAK',
 };
 
 type ReferralBaruSearchParams = {

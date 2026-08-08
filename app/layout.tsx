@@ -21,9 +21,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'ILUNI FTE UNPAK - Alumni Database & Networking Platform',
+  title: 'ILUNI FT ELEKTRO UNPAK - Alumni Database & Networking Platform',
   description:
-    'Jaringan Alumni Fakultas Teknik Elektro Universitas Pakuan. Hubungkan kembali dengan rekan sejawat, temukan peluang karir, dan bangun jejaring profesional.',
+    'Jaringan Alumni Fakultas Teknik Program Studi Teknik Elektro Universitas Pakuan Bogor. Hubungkan kembali dengan rekan sejawat, temukan peluang karir, dan bangun jejaring profesional.',
 };
 
 export default function RootLayout({

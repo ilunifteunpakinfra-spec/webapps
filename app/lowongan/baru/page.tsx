@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import JobForm from './JobForm';
 
 export const metadata = {
-  title: 'Pasang Lowongan - ILUNI FTE UNPAK',
+  title: 'Pasang Lowongan - ILUNI FT ELEKTRO UNPAK',
 };
 
 export default function LowonganBaruPage() {

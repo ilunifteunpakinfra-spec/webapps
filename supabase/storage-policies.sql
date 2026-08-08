@@ -14,12 +14,9 @@
 
 -- ------------------------------------------------------------
 -- 1. avatars (public bucket)
---    Public read + own-folder write (INSERT/UPDATE/DELETE)
+--    Object URLs are CDN-served — no SELECT/listing policy (lint 0025).
+--    Own-folder write (INSERT/UPDATE/DELETE)
 -- ------------------------------------------------------------
-DROP POLICY IF EXISTS "public_read_avatars" ON storage.objects;
-CREATE POLICY "public_read_avatars"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'avatars');
 
 DROP POLICY IF EXISTS "auth_upload_avatars" ON storage.objects;
 CREATE POLICY "auth_upload_avatars"
@@ -81,12 +78,9 @@ CREATE POLICY "auth_update_resumes"
 
 -- ------------------------------------------------------------
 -- 3. gallery (public bucket)
---    Public read + own-folder insert (no update/delete yet)
+--    Object URLs are CDN-served — no SELECT/listing policy (lint 0025).
+--    Own-folder insert (no update/delete yet)
 -- ------------------------------------------------------------
-DROP POLICY IF EXISTS "public_read_gallery" ON storage.objects;
-CREATE POLICY "public_read_gallery"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'gallery');
 
 DROP POLICY IF EXISTS "auth_upload_gallery" ON storage.objects;
 CREATE POLICY "auth_upload_gallery"

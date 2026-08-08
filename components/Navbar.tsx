@@ -16,7 +16,7 @@ export default async function Navbar() {
           </div>
           <div className="flex flex-col">
             <span className="font-montserrat text-lg font-bold leading-tight text-on-surface">
-              ILUNI FTE
+              ILUNI FT ELEKTRO
             </span>
             <span className="font-mono text-[10px] uppercase tracking-wider text-on-surface-variant">
               UNPAK

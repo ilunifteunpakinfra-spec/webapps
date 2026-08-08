@@ -15,9 +15,9 @@ import { getCurrentUser } from '@/lib/supabase/user';
 import type { AlumniWithSkills } from '@/lib/types';
 
 export const metadata: Metadata = {
-  title: 'ILUNI FTE UNPAK - Jaringan Alumni Teknik Elektro',
+  title: 'ILUNI FT ELEKTRO UNPAK - Jaringan Alumni Teknik Elektro',
   description:
-    'Jaringan alumni Fakultas Teknik Elektro Universitas Pakuan — temukan rekan, peluang karir, dan bangun jejaring profesional.',
+    'Jaringan alumni Fakultas Teknik Program Studi Teknik Elektro Universitas Pakuan Bogor — temukan rekan, peluang karir, dan bangun jejaring profesional.',
 };
 
 export default async function Home() {
@@ -288,10 +288,10 @@ export default async function Home() {
             <div className="flex h-8 w-8 items-center justify-center rounded bg-primary-container">
               <Zap className="h-4 w-4 text-white" />
             </div>
-            <span className="font-montserrat font-bold">ILUNI FTE UNPAK</span>
+            <span className="font-montserrat font-bold">ILUNI FT ELEKTRO UNPAK</span>
           </div>
           <p className="text-sm text-white/70">
-            © 2026 Ikatan Alumni Fakultas Teknik Elektro Universitas Pakuan
+            © 2026 Ikatan Alumni Fakultas Teknik Program Studi Teknik Elektro Universitas Pakuan Bogor
           </p>
         </div>
       </footer>

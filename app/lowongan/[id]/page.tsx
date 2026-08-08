@@ -15,7 +15,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { JobPostingRow } from '@/lib/types';
 
 export const metadata: Metadata = {
-  title: 'Detail Lowongan - ILUNI FTE UNPAK',
+  title: 'Detail Lowongan - ILUNI FT ELEKTRO UNPAK',
 };
 
 export default async function LowonganDetailPage({

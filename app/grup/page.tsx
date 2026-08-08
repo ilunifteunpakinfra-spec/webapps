@@ -9,7 +9,7 @@ import { asString } from '@/lib/utils';
 const GROUPS_PAGE_SIZE = 9;
 
 export const metadata: Metadata = {
-  title: 'Komunitas & Grup - ILUNI FTE UNPAK',
+  title: 'Komunitas & Grup - ILUNI FT ELEKTRO UNPAK',
 };
 
 type GrupSearchParams = {

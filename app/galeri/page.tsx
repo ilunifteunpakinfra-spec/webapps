@@ -6,7 +6,7 @@ import GalleryView, { type GalleryPhoto } from './GalleryView';
 import PhotoUploadForm from './PhotoUploadForm';
 
 export const metadata = {
-  title: 'Galeri Acara - ILUNI FTE UNPAK',
+  title: 'Galeri Acara - ILUNI FT ELEKTRO UNPAK',
 };
 
 export default async function GaleriPage() {
@@ -42,7 +42,7 @@ export default async function GaleriPage() {
           <div>
             <h1 className="hero-title mb-1">Galeri Acara</h1>
             <p className="text-on-surface-variant">
-              Dokumentasi momen kebersamaan alumni ILUNI FTE
+              Dokumentasi momen kebersamaan alumni ILUNI FT ELEKTRO
             </p>
           </div>
         </div>

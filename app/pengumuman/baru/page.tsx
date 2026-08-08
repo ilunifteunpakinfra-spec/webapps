@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import AnnouncementForm from './AnnouncementForm';
 
 export const metadata = {
-  title: 'Buat Pengumuman - ILUNI FTE UNPAK',
+  title: 'Buat Pengumuman - ILUNI FT ELEKTRO UNPAK',
 };
 
 export default function PengumumanBaruPage() {

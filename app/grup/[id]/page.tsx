@@ -8,7 +8,7 @@ import { getCurrentUser } from '@/lib/supabase/user';
 import JoinGroupButton from './JoinGroupButton';
 
 export const metadata: Metadata = {
-  title: 'Detail Grup - ILUNI FTE UNPAK',
+  title: 'Detail Grup - ILUNI FT ELEKTRO UNPAK',
 };
 
 export default async function GrupDetailPage({

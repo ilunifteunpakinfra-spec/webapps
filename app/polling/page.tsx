@@ -6,7 +6,7 @@ import { getCurrentUser } from '@/lib/supabase/user';
 import VoteButton from './VoteButton';
 
 export const metadata = {
-  title: 'Polling - ILUNI FTE UNPAK',
+  title: 'Polling - ILUNI FT ELEKTRO UNPAK',
 };
 
 type PollRow = {

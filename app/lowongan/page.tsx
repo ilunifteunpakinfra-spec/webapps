@@ -14,7 +14,7 @@ type LowonganSearchParams = {
 };
 
 export const metadata: Metadata = {
-  title: 'Lowongan Kerja - ILUNI FTE UNPAK',
+  title: 'Lowongan Kerja - ILUNI FT ELEKTRO UNPAK',
 };
 
 /** "2 hari lalu" style relative time from an ISO timestamp. */

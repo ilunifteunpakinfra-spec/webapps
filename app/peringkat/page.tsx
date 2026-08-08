@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/server';
 import type { AlumniRow } from '@/lib/types';
 
 export const metadata = {
-  title: 'Peringkat Kontribusi - ILUNI FTE UNPAK',
+  title: 'Peringkat Kontribusi - ILUNI FT ELEKTRO UNPAK',
 };
 
 const TOP_N = 50;

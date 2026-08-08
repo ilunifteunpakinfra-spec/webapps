@@ -6,7 +6,7 @@ import { getCurrentUser } from '@/lib/supabase/user';
 import MentorForm from './MentorForm';
 
 export const metadata = {
-  title: 'Daftar Jadi Mentor - ILUNI FTE UNPAK',
+  title: 'Daftar Jadi Mentor - ILUNI FT ELEKTRO UNPAK',
 };
 
 export default async function DaftarMentorPage() {

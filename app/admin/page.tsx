@@ -15,7 +15,7 @@ import VerifyButton from './VerifyButton';
 import ImportCsv from './ImportCsv';
 
 export const metadata = {
-  title: 'Dashboard Admin - ILUNI FTE UNPAK',
+  title: 'Dashboard Admin - ILUNI FT ELEKTRO UNPAK',
 };
 
 export default async function AdminPage() {

@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import GroupForm from './GroupForm';
 
 export const metadata = {
-  title: 'Buat Grup - ILUNI FTE UNPAK',
+  title: 'Buat Grup - ILUNI FT ELEKTRO UNPAK',
 };
 
 export default function GrupBaruPage() {

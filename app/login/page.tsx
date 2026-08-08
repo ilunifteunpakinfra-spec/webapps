@@ -27,7 +27,7 @@ export default async function LoginPage({
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded bg-primary-container">
               <Zap className="h-6 w-6 text-white" />
             </div>
-            <h1 className="font-montserrat text-2xl font-bold">Masuk ke ILUNI FTE</h1>
+            <h1 className="font-montserrat text-2xl font-bold">Masuk ke ILUNI FT ELEKTRO</h1>
             <p className="mt-1 text-sm text-on-surface-variant">
               Selamat datang kembali, alumni!
             </p>

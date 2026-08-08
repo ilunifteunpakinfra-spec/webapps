@@ -1,6 +1,6 @@
 # ILUNI FTE WebApps
 
-Alumni Database & Networking Platform untuk ILUNI FTE UNPAK. Dibangun dengan Next.js 14, Supabase, dan Bun.
+Alumni Database & Networking Platform untuk Ikatan Alumni Fakultas Teknik Program Studi Teknik Elektro Universitas Pakuan Bogor (ILUNI FT ELEKTRO UNPAK). Dibangun dengan Next.js 14, Supabase, dan Bun.
 
 ## 📋 Features
 
@@ -287,11 +287,11 @@ App deployment:
 
 ## 📄 License
 
-Private - ILUNI FTE UNPAK
+Private - ILUNI FT ELEKTRO UNPAK
 
 ## 👥 Team
 
-- **Developed by:** ILUNI FTE UNPAK Development Team
+- **Developed by:** ILUNI FT ELEKTRO UNPAK Development Team
 - **Repository:** [github.com/ilunifteunpakinfra-spec/webapps](https://github.com/ilunifteunpakinfra-spec/webapps)
 
 ## 🔗 Links

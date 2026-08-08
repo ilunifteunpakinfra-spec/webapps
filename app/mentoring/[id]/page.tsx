@@ -8,7 +8,7 @@ import { getCurrentUser } from '@/lib/supabase/user';
 import MentoringRequestForm from './MentoringRequestForm';
 
 export const metadata: Metadata = {
-  title: 'Ajukan Mentoring - ILUNI FTE UNPAK',
+  title: 'Ajukan Mentoring - ILUNI FT ELEKTRO UNPAK',
 };
 
 export default async function MentorDetailPage({

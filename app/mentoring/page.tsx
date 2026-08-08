@@ -4,7 +4,7 @@ import Navbar from '@/components/Navbar';
 import { createClient } from '@/lib/supabase/server';
 
 export const metadata = {
-  title: 'Program Mentoring - ILUNI FTE UNPAK',
+  title: 'Program Mentoring - ILUNI FT ELEKTRO UNPAK',
 };
 
 type MentorRow = {

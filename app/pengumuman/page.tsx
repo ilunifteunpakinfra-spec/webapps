@@ -7,7 +7,7 @@ import { getCurrentUser } from '@/lib/supabase/user';
 import { asString } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: 'Pengumuman - ILUNI FTE UNPAK',
+  title: 'Pengumuman - ILUNI FT ELEKTRO UNPAK',
 };
 
 const CATEGORIES = [
@@ -92,7 +92,7 @@ export default async function PengumumanPage({
           <div>
             <h1 className="hero-title mb-2">Pengumuman</h1>
             <p className="text-on-surface-variant">
-              Informasi resmi dan kabar terbaru dari komunitas ILUNI FTE
+              Informasi resmi dan kabar terbaru dari komunitas ILUNI FT ELEKTRO
             </p>
           </div>
           {canPost && (

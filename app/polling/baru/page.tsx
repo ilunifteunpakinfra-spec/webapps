@@ -5,7 +5,7 @@ import Navbar from '@/components/Navbar';
 import PollForm from './PollForm';
 
 export const metadata: Metadata = {
-  title: 'Buat Polling - ILUNI FTE UNPAK',
+  title: 'Buat Polling - ILUNI FT ELEKTRO UNPAK',
 };
 
 export default function PollingBaruPage() {

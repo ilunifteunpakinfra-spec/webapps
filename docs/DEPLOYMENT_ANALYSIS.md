@@ -1,6 +1,6 @@
 # Deployment Analysis Report: ILUNI FTE WebApps
 
-> **Scope:** Production deployment readiness assessment for the ILUNI FTE UNPAK alumni platform (Next.js 14 App Router + Supabase).
+> **Scope:** Production deployment readiness assessment for the ILUNI FT ELEKTRO UNPAK alumni platform (Next.js 14 App Router + Supabase).
 > **Method:** Systematic review following the code-review checklist (functionality, security, performance, maintainability, testing), plus live verification of build, types, dependency audit, and deploy scripts.
 > **Date:** 2026-08-05 · **Version:** 1.0.0
 
@@ -202,6 +202,19 @@ Without them every scheduled run fails (3-day cadence, intended to prevent free-
 - npm `overrides` require the direct dependency spec to match the override spec (EOVERRIDE otherwise) — direct `postcss` is now `^8.5.25`.
 - `next lint` is deprecated on 15.x and removed in 16 — plan to move to ESLint 9 flat config before a 16 upgrade.
 - `lucide-react@0.454.0` left unchanged (no advisories; 1.x renames icons and would need a sweep).
+
+### 5.6 Supabase Database Linter — Findings Resolved (2026-08-08)
+
+The Supabase security linter reported **7 warnings**; 4 fixed in the database, 2 accepted as intentional, 1 requires a dashboard toggle.
+
+| Lint | Status | Resolution |
+| ----------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `function_search_path_mutable` ×2 (`is_admin`, `update_updated_at`) | ✅ FIXED | `SET search_path = ''` pinned on both functions; `auth.*` references fully qualified. Applied via migration `security_hardening_search_path_storage_listing` |
+| `public_bucket_allows_listing` ×2 (`avatars`, `gallery`) | ✅ FIXED | Dropped `public_read_avatars` / `public_read_gallery` — public bucket URLs are CDN-served without RLS; the app never calls `storage.from(...).list()` (verified in source). Re-add a narrower policy if an in-app object listing feature is built later |
+| `anon/authenticated_security_definer_function_executable` (`is_admin`) | ⚠️ ACCEPTED (intentional) | `is_admin()` must stay executable by `anon`+`authenticated` because 15 `admin_bypass_*` RLS policies call it for every role — revoking `EXECUTE` would break all public reads. It only returns the **caller's own** admin status (`auth.uid()`), which their JWT already carries; not an information leak. Optional future hardening: move to a `private` schema + recreate policies |
+| `auth_leaked_password_protection` | 🔶 MANUAL | Dashboard → Authentication → enable **"Prevent use of leaked passwords"** (HaveIBeenPwned check) |
+
+**Migration:** `security_hardening_search_path_storage_listing` applied to `db.zotizozgkzzuhrwbxoud.supabase.co`. Repo files synced: `supabase/schema.sql`, `supabase/migrations/0001_init.sql`, `supabase/apply-all.sql`, `supabase/storage-policies.sql`.
 
 ---
 

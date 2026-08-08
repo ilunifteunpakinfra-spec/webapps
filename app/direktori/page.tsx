@@ -18,7 +18,7 @@ type DirectorySearchParams = {
 };
 
 export const metadata: Metadata = {
-  title: 'Direktori Alumni - ILUNI FTE UNPAK',
+  title: 'Direktori Alumni - ILUNI FT ELEKTRO UNPAK',
 };
 
 export default async function DirektoriPage({

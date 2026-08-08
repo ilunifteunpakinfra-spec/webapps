@@ -46,7 +46,7 @@ DROP FUNCTION IF EXISTS update_updated_at() CASCADE;
 -- SCHEMA (supabase/schema.sql)
 -- ============================================
 -- ============================================
--- ILUNI FTE UNPAK - Alumni Database & Networking Platform
+-- ILUNI FT ELEKTRO UNPAK - Alumni Database & Networking Platform
 -- Complete Supabase Schema (BRD v3.0)
 -- ============================================
 
@@ -253,12 +253,15 @@ CREATE INDEX idx_event_gallery_event ON event_gallery (event_id);
 -- 4. TRIGGERS (updated_at)
 -- ============================================
 CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER set_alumni_updated_at
   BEFORE UPDATE ON alumni
@@ -538,7 +541,11 @@ CREATE POLICY "auth_upload_event_photos"
 -- ============================================
 -- Super Admin & Admin roles bypass RLS for data verification and content moderation
 CREATE OR REPLACE FUNCTION is_admin()
-RETURNS BOOLEAN AS $$
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM auth.users
@@ -546,7 +553,7 @@ BEGIN
       AND raw_user_meta_data->>'role' IN ('super_admin', 'admin')
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Admin bypass policies (applied to all tables)
 CREATE POLICY "admin_bypass_alumni" ON alumni FOR ALL USING (is_admin());
@@ -603,12 +610,9 @@ INSERT INTO skills (nama_skill, kategori) VALUES
 
 -- ------------------------------------------------------------
 -- 1. avatars (public bucket)
---    Public read + own-folder write (INSERT/UPDATE/DELETE)
+--    Object URLs are CDN-served — no SELECT/listing policy (lint 0025).
+--    Own-folder write (INSERT/UPDATE/DELETE)
 -- ------------------------------------------------------------
-DROP POLICY IF EXISTS "public_read_avatars" ON storage.objects;
-CREATE POLICY "public_read_avatars"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'avatars');
 
 DROP POLICY IF EXISTS "auth_upload_avatars" ON storage.objects;
 CREATE POLICY "auth_upload_avatars"
@@ -670,12 +674,9 @@ CREATE POLICY "auth_update_resumes"
 
 -- ------------------------------------------------------------
 -- 3. gallery (public bucket)
---    Public read + own-folder insert (no update/delete yet)
+--    Object URLs are CDN-served — no SELECT/listing policy (lint 0025).
+--    Own-folder insert (no update/delete yet)
 -- ------------------------------------------------------------
-DROP POLICY IF EXISTS "public_read_gallery" ON storage.objects;
-CREATE POLICY "public_read_gallery"
-  ON storage.objects FOR SELECT
-  USING (bucket_id = 'gallery');
 
 DROP POLICY IF EXISTS "auth_upload_gallery" ON storage.objects;
 CREATE POLICY "auth_upload_gallery"

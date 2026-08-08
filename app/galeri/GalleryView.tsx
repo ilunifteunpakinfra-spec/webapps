@@ -97,7 +97,7 @@ function Lightbox({ photos, initialIndex, onNavigate, onClose }: LightboxProps) 
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={photo.foto_url}
-        alt={photo.caption ?? 'Foto acara ILUNI FTE'}
+        alt={photo.caption ?? 'Foto acara ILUNI FT ELEKTRO'}
         className="max-h-[85vh] max-w-full rounded-lg object-contain"
         onClick={(event) => event.stopPropagation()}
       />
@@ -144,7 +144,7 @@ export default function GalleryView({ photos, isLoggedIn, children }: GalleryVie
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={photo.foto_url}
-              alt={photo.caption ?? 'Foto acara ILUNI FTE'}
+              alt={photo.caption ?? 'Foto acara ILUNI FT ELEKTRO'}
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
               loading="lazy"
             />

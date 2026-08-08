@@ -1,5 +1,5 @@
 -- ============================================
--- ILUNI FTE UNPAK - Alumni Database & Networking Platform
+-- ILUNI FT ELEKTRO UNPAK - Alumni Database & Networking Platform
 -- Complete Supabase Schema (BRD v3.0)
 -- ============================================
 
@@ -206,12 +206,15 @@ CREATE INDEX idx_event_gallery_event ON event_gallery (event_id);
 -- 4. TRIGGERS (updated_at)
 -- ============================================
 CREATE OR REPLACE FUNCTION update_updated_at()
-RETURNS TRIGGER AS $$
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SET search_path = ''
+AS $$
 BEGIN
   NEW.updated_at = now();
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$;
 
 CREATE TRIGGER set_alumni_updated_at
   BEFORE UPDATE ON alumni
@@ -491,7 +494,11 @@ CREATE POLICY "auth_upload_event_photos"
 -- ============================================
 -- Super Admin & Admin roles bypass RLS for data verification and content moderation
 CREATE OR REPLACE FUNCTION is_admin()
-RETURNS BOOLEAN AS $$
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
 BEGIN
   RETURN EXISTS (
     SELECT 1 FROM auth.users
@@ -499,7 +506,7 @@ BEGIN
       AND raw_user_meta_data->>'role' IN ('super_admin', 'admin')
   );
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$;
 
 -- Admin bypass policies (applied to all tables)
 CREATE POLICY "admin_bypass_alumni" ON alumni FOR ALL USING (is_admin());
