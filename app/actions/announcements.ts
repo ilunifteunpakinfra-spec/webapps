@@ -20,7 +20,7 @@ export async function createAnnouncementAction(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

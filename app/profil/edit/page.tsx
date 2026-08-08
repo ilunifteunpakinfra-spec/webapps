@@ -10,7 +10,7 @@ export default async function ProfileEditPage() {
   const user = await getCurrentUser();
   if (!user) redirect('/login?next=/profil/edit');
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Guarantee the alumni row exists before loading the form.
   await ensureAlumniProfile(user);

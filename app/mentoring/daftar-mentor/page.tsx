@@ -11,7 +11,7 @@ export const metadata = {
 
 export default async function DaftarMentorPage() {
   const user = await getCurrentUser();
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Prefill existing mentor profile when re-registering.
   const { data: existing } = user

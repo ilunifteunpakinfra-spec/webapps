@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   Search,
@@ -13,14 +14,14 @@ import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/user';
 import type { AlumniWithSkills } from '@/lib/types';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'ILUNI FTE UNPAK - Jaringan Alumni Teknik Elektro',
   description:
     'Jaringan alumni Fakultas Teknik Elektro Universitas Pakuan — temukan rekan, peluang karir, dan bangun jejaring profesional.',
 };
 
 export default async function Home() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const user = await getCurrentUser();
 
   // Real stats (RLS-aware: unauthenticated visitors only count public profiles).

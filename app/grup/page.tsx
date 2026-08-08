@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Users, Plus, ChevronLeft, ChevronRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -7,7 +8,7 @@ import { asString } from '@/lib/utils';
 
 const GROUPS_PAGE_SIZE = 9;
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Komunitas & Grup - ILUNI FTE UNPAK',
 };
 
@@ -19,13 +20,14 @@ type GrupSearchParams = {
 export default async function GrupPage({
   searchParams,
 }: {
-  searchParams: GrupSearchParams;
+  searchParams: Promise<GrupSearchParams>;
 }) {
-  const tipe = asString(searchParams.tipe);
-  const rawPage = Number(asString(searchParams.page)) || 1;
+  const params = await searchParams;
+  const tipe = asString(params.tipe);
+  const rawPage = Number(asString(params.page)) || 1;
   const page = Math.max(1, rawPage);
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const user = await getCurrentUser();
 
   let query = supabase

@@ -17,7 +17,7 @@ const VISIBILITIES: Visibility[] = ['public', 'alumni_only', 'private'];
  * record is always present.
  */
 export async function ensureAlumniProfile(user: User) {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: existing } = await supabase
     .from('alumni')
@@ -58,7 +58,7 @@ export async function updateProfileAction(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -107,7 +107,7 @@ export async function updateProfileAction(
 export async function toggleOpenToWorkAction(
   formData: FormData
 ): Promise<ActionState> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

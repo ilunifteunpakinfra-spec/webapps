@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Users, Check } from 'lucide-react';
@@ -6,22 +7,23 @@ import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/user';
 import JoinGroupButton from './JoinGroupButton';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Detail Grup - ILUNI FTE UNPAK',
 };
 
 export default async function GrupDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const supabase = createClient();
+  const { id } = await params;
+  const supabase = await createClient();
   const user = await getCurrentUser();
 
   const { data: group } = await supabase
     .from('groups')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .maybeSingle();
 
   if (!group) notFound();
@@ -29,7 +31,7 @@ export default async function GrupDetailPage({
   const { data: memberRows } = await supabase
     .from('group_members')
     .select('alumni_id, role, alumni(id, nama, foto_profil, pekerjaan, perusahaan)')
-    .eq('group_id', params.id)
+    .eq('group_id', id)
     .order('joined_at');
 
   // supabase-js infers joined relations as arrays; they are objects at runtime.
@@ -94,7 +96,7 @@ export default async function GrupDetailPage({
                   Anggota
                 </span>
               ) : (
-                <JoinGroupButton groupId={params.id} />
+                <JoinGroupButton groupId={id} />
               )
             ) : (
               <Link href="/login" className="btn-primary">

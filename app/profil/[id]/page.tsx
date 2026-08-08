@@ -20,16 +20,17 @@ import type { AlumniSkillRow } from '@/lib/types';
 export default async function ProfilPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const supabase = createClient();
+  const { id } = await params;
+  const supabase = await createClient();
   const user = await getCurrentUser();
 
   // RLS only exposes profiles the current viewer is allowed to see.
   const { data: alumni } = await supabase
     .from('alumni')
     .select('*')
-    .eq('id', params.id)
+    .eq('id', id)
     .maybeSingle();
 
   if (!alumni) notFound();
@@ -37,13 +38,13 @@ export default async function ProfilPage({
   const { data: skillRows } = await supabase
     .from('alumni_skills')
     .select('skill_id, level, skills(id, nama_skill, kategori)')
-    .eq('alumni_id', params.id)
+    .eq('alumni_id', id)
     .order('level', { ascending: false });
 
   const { data: endorsementRows } = await supabase
     .from('endorsements')
     .select('skill_id, endorser_id, alumni(id, nama)')
-    .eq('alumni_id', params.id);
+    .eq('alumni_id', id);
 
   // supabase-js infers joined relations as arrays; they are objects at runtime.
   const endorsements = (endorsementRows ?? []) as unknown as {
@@ -61,7 +62,7 @@ export default async function ProfilPage({
   }
 
   const skills: AlumniSkillRow[] = (skillRows ?? []) as unknown as AlumniSkillRow[];
-  const isOwner = user?.id === params.id;
+  const isOwner = user?.id === id;
   const isAuthed = Boolean(user);
 
   return (
@@ -119,11 +120,11 @@ export default async function ProfilPage({
               </div>
               {!isOwner && (
                 <div className="mt-4 flex flex-col gap-2">
-                  <Link href={`/referral/baru?alumni=${params.id}`} className="btn-primary">
+                  <Link href={`/referral/baru?alumni=${id}`} className="btn-primary">
                     <Handshake className="h-4 w-4" />
                     Minta Referral
                   </Link>
-                  <Link href={`/mentoring/${params.id}`} className="btn-secondary">
+                  <Link href={`/mentoring/${id}`} className="btn-secondary">
                     <GraduationCap className="h-4 w-4" />
                     Ajukan Mentoring
                   </Link>
@@ -223,7 +224,7 @@ export default async function ProfilPage({
                               ))}
                             </span>
                             <EndorseButton
-                              alumniId={params.id}
+                              alumniId={id}
                               skillId={entry.skill_id}
                               initialCount={endorsement.count}
                               canEndorse={isAuthed && !isOwner}

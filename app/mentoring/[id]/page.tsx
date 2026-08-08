@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Award, Users, Briefcase, GraduationCap, Building2 } from 'lucide-react';
@@ -6,22 +7,23 @@ import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/user';
 import MentoringRequestForm from './MentoringRequestForm';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Ajukan Mentoring - ILUNI FTE UNPAK',
 };
 
 export default async function MentorDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const supabase = createClient();
+  const { id } = await params;
+  const supabase = await createClient();
   const user = await getCurrentUser();
 
   const { data: mentor } = await supabase
     .from('mentor_profiles')
     .select('alumni_id, bidang_mentoring, kapasitas_mentee, status_aktif, alumni(id, nama, foto_profil, pekerjaan, perusahaan, bio_singkat)')
-    .eq('alumni_id', params.id)
+    .eq('alumni_id', id)
     .maybeSingle();
 
   // supabase-js infers joined relations as arrays; they are objects at runtime.
@@ -46,7 +48,7 @@ export default async function MentorDetailPage({
   const profile = mentorProfile.alumni;
   if (!mentorProfile.status_aktif) notFound();
 
-  const isSelf = user?.id === params.id;
+  const isSelf = user?.id === id;
 
   return (
     <div className="min-h-screen bg-surface">
@@ -129,7 +131,7 @@ export default async function MentorDetailPage({
                   <GraduationCap className="h-5 w-5 text-primary-container" />
                   Ajukan Permintaan Mentoring
                 </h2>
-                <MentoringRequestForm mentorId={params.id} />
+                <MentoringRequestForm mentorId={id} />
               </div>
             ) : (
               <div className="card text-center text-on-surface-variant">

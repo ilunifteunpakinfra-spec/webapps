@@ -1,9 +1,10 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, Plus } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import PollForm from './PollForm';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Buat Polling - ILUNI FTE UNPAK',
 };
 

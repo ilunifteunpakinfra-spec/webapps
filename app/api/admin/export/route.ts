@@ -17,7 +17,7 @@ const CSV_COLUMNS = [
 
 /** Export the full alumni directory as CSV (admin only). */
 export async function GET() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

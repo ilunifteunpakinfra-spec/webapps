@@ -11,7 +11,7 @@ import type { User } from '@supabase/supabase-js';
  * Returns null when there is no active session.
  */
 export async function getCurrentUser(): Promise<User | null> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

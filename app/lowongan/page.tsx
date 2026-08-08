@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Briefcase, MapPin, Clock, Building2, ChevronLeft, ChevronRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -12,7 +13,7 @@ type LowonganSearchParams = {
   page?: string | string[];
 };
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Lowongan Kerja - ILUNI FTE UNPAK',
 };
 
@@ -28,13 +29,14 @@ function daysAgo(iso: string | null | undefined): string {
 export default async function LowonganPage({
   searchParams,
 }: {
-  searchParams: LowonganSearchParams;
+  searchParams: Promise<LowonganSearchParams>;
 }) {
-  const skill = asString(searchParams.skill);
-  const rawPage = Number(asString(searchParams.page)) || 1;
+  const params = await searchParams;
+  const skill = asString(params.skill);
+  const rawPage = Number(asString(params.page)) || 1;
   const page = Math.max(1, rawPage);
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   let query = supabase
     .from('job_postings')

@@ -3,18 +3,19 @@ import { Zap } from 'lucide-react';
 import LoginForm from './login-form';
 import { safePath } from '@/lib/utils';
 
-export default function LoginPage({
+export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { next?: string; error?: string };
+  searchParams: Promise<{ next?: string; error?: string }>;
 }) {
-  const next = safePath(searchParams.next, '/');
+  const params = await searchParams;
+  const next = safePath(params.next, '/');
   const error =
-    typeof searchParams.error === 'string' && searchParams.error === 'verifikasi'
+    params.error === 'verifikasi'
       ? 'Tautan verifikasi tidak valid atau sudah kedaluwarsa. Silakan masuk kembali.'
       : null;
   const message =
-    typeof searchParams.error === 'string' && searchParams.error === 'reset-berhasil'
+    params.error === 'reset-berhasil'
       ? 'Password berhasil diubah. Silakan masuk dengan password baru Anda.'
       : null;
 

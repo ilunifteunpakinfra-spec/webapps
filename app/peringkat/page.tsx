@@ -40,7 +40,7 @@ function countByAuthor<T extends string>(
 }
 
 export default async function PeringkatPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: alumniRows } = await supabase
     .from('alumni')

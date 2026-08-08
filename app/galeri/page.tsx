@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function GaleriPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const user = await getCurrentUser();
 
   const { data: photoRows } = await supabase

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -16,25 +17,26 @@ type DirectorySearchParams = {
   page?: string | string[];
 };
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Direktori Alumni - ILUNI FTE UNPAK',
 };
 
 export default async function DirektoriPage({
   searchParams,
 }: {
-  searchParams: DirectorySearchParams;
+  searchParams: Promise<DirectorySearchParams>;
 }) {
-  const q = asString(searchParams.q)?.trim();
-  const angkatan = asString(searchParams.angkatan);
-  const pekerjaan = asString(searchParams.pekerjaan);
-  const kota = asString(searchParams.kota);
-  const skill = asString(searchParams.skill);
-  const openToWork = asString(searchParams.open_to_work) === 'true';
-  const rawPage = Number(asString(searchParams.page)) || 1;
+  const params = await searchParams;
+  const q = asString(params.q)?.trim();
+  const angkatan = asString(params.angkatan);
+  const pekerjaan = asString(params.pekerjaan);
+  const kota = asString(params.kota);
+  const skill = asString(params.skill);
+  const openToWork = asString(params.open_to_work) === 'true';
+  const rawPage = Number(asString(params.page)) || 1;
   const page = Math.max(1, rawPage);
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   // Load filter options in parallel with the alumni query.
   const [{ data: angkatanRows }, { data: skillRows }] = await Promise.all([

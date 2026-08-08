@@ -22,7 +22,7 @@ type OptionRow = { id: string; poll_id: string; teks_opsi: string };
 type VoteRow = { poll_id: string; option_id: string; alumni_id: string };
 
 export default async function PollingPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const user = await getCurrentUser();
 
   const { data: pollRows } = await supabase

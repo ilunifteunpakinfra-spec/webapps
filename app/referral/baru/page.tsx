@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, Handshake } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -7,7 +8,7 @@ import { asString } from '@/lib/utils';
 import ReferralForm from './ReferralForm';
 import type { JobPostingRow } from '@/lib/types';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Minta Referral - ILUNI FTE UNPAK',
 };
 
@@ -19,13 +20,14 @@ type ReferralBaruSearchParams = {
 export default async function ReferralBaruPage({
   searchParams,
 }: {
-  searchParams: ReferralBaruSearchParams;
+  searchParams: Promise<ReferralBaruSearchParams>;
 }) {
+  const params = await searchParams;
   const user = await getCurrentUser();
-  const supabase = createClient();
+  const supabase = await createClient();
 
-  const prefilledAlumniId = asString(searchParams.alumni);
-  const jobId = asString(searchParams.job);
+  const prefilledAlumniId = asString(params.alumni);
+  const jobId = asString(params.job);
 
   // RLS limits this list to profiles the viewer may see; exclude self.
   const { data: alumniRows } = await supabase

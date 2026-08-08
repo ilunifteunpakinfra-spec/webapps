@@ -16,7 +16,7 @@ export async function createMentoringRequestAction(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -62,7 +62,7 @@ export async function registerMentorAction(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

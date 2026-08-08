@@ -18,7 +18,7 @@ export async function addGalleryPhotoAction(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

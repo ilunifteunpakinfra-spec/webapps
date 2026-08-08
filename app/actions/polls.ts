@@ -16,7 +16,7 @@ export async function createPollAction(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -71,7 +71,7 @@ export async function votePollAction(
   _prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();

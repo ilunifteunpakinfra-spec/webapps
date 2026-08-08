@@ -23,7 +23,7 @@ export async function signInAction(
     return { error: 'Email dan password wajib diisi.' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -64,7 +64,7 @@ export async function signUpAction(
     return { error: 'Password minimal 6 karakter.' };
   }
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -98,7 +98,7 @@ export async function signUpAction(
 
 /** Sign the current user out and return to the landing page. */
 export async function signOutAction(): Promise<void> {
-  const supabase = createClient();
+  const supabase = await createClient();
   await supabase.auth.signOut();
   revalidatePath('/', 'layout');
   redirect('/');
@@ -113,7 +113,7 @@ export async function requestPasswordResetAction(
 
   if (!email) return { error: 'Email wajib diisi.' };
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${getSiteUrl()}/reset-password`,
   });

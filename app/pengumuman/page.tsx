@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Megaphone, Plus, BadgeCheck } from 'lucide-react';
 import Navbar from '@/components/Navbar';
@@ -5,7 +6,7 @@ import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/user';
 import { asString } from '@/lib/utils';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Pengumuman - ILUNI FTE UNPAK',
 };
 
@@ -46,11 +47,12 @@ function daysAgo(iso: string | null | undefined): string {
 export default async function PengumumanPage({
   searchParams,
 }: {
-  searchParams: PengumumanSearchParams;
+  searchParams: Promise<PengumumanSearchParams>;
 }) {
-  const kategori = asString(searchParams.kategori);
+  const params = await searchParams;
+  const kategori = asString(params.kategori);
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const user = await getCurrentUser();
 
   let query = supabase

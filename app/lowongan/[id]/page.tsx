@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import {
@@ -13,21 +14,22 @@ import Navbar from '@/components/Navbar';
 import { createClient } from '@/lib/supabase/server';
 import type { JobPostingRow } from '@/lib/types';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Detail Lowongan - ILUNI FTE UNPAK',
 };
 
 export default async function LowonganDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const supabase = createClient();
+  const { id } = await params;
+  const supabase = await createClient();
 
   const { data: job } = await supabase
     .from('job_postings')
     .select('*, alumni(id, nama, pekerjaan)')
-    .eq('id', params.id)
+    .eq('id', id)
     .maybeSingle();
 
   if (!job) notFound();

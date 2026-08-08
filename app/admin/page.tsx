@@ -22,7 +22,7 @@ export default async function AdminPage() {
   const user = await getCurrentUser();
   if (!isAdminUser(user)) redirect('/');
 
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const [
     totalAlumni,

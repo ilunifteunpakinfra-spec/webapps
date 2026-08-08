@@ -22,7 +22,7 @@ type MentorRow = {
 };
 
 export default async function MentoringPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const { data: mentorRows } = await supabase
     .from('mentor_profiles')
