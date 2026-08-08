@@ -315,11 +315,15 @@ components/admin/StatusBadge.tsx    # role / verification / report status badge
 - ✅ **Exit criteria:** `bunx tsc --noEmit` clean, `bun run build` clean (29 routes), live DB migration applied, live smoke test passed (superadmin → `admin_list_users` → 4 users with correct roles).
 - ⚠️ **Linter note:** 6 new 0029 (authenticated-exec SECURITY DEFINER) findings on the admin RPCs are **accepted-by-design** — the functions must be callable by signed-in users and enforce admin/super_admin internally (same precedent as the existing `is_admin()` acceptance). `anon` EXECUTE is fully revoked (no new 0028 findings). `auth_sync_app_role` kept SECURITY INVOKER + `search_path=''` (no linter finding).
 
-### Phase 2 — Full Content Moderation (1–2 days)
-- `content_reports` UI: report buttons on job/announcement/poll/group/gallery/profile.
-- `app/actions/reports.ts` submit/resolve; moderation page tabs (Reports / Content).
-- Delete-with-confirm flows for every entity incl. gallery storage object removal.
-- Audit every mutation.
+### Phase 2 — Full Content Moderation (1–2 days) 🚧 MOSTLY SHIPPED
+- ✅ Migration `0003_content_moderation.sql` (soft-hide `status` columns for `job_postings` + `announcements`, `admin_delete_gallery_photo` SECURITY DEFINER RPC w/ storage-object removal, grants) → applied to live + synced `schema.sql`/`apply-all.sql`/`reset.sql`.
+- ✅ `app/actions/moderation.ts` (hide/restore job & announcement, close/delete poll, delete group, delete gallery photo, delete endorsement, force-delete skill rating — all capability-gated + audited).
+- ✅ `app/actions/reports.ts` (submit/report + resolve/dismiss, capability-gated, audited) + `components/ReportButton.tsx` (modal, login-gated).
+- ✅ `app/admin/moderation/page.tsx` with Laporan / Konten tabs + `ReportActions`/`ContentActions` client buttons (capability-disabled, confirm dialogs, Indonesian).
+- ✅ `AdminNav` gains Moderasi link (superOnly: false); middleware `/admin` gate already covers it.
+- ✅ Report buttons mounted on job detail, pengumuman, polling, grup detail, galeri (photo card overlay), profil.
+- ✅ Public reads filter `status='active'` (lowongan list + skill chips + detail, pengumuman, home jobs count).
+- ⚠️ Exit criteria: tsc + build clean, live smoke of hide/restore + gallery delete RPC, deploy, commit — **in progress**.
 
 ### Phase 3 — Alumni Admin (1 day)
 - `app/admin/alumni/page.tsx` (search + pagination), edit-any-profile form, delete account, bulk verify, unverify, reset contribution.

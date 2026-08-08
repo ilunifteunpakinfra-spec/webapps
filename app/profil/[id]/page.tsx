@@ -12,6 +12,7 @@ import {
   GraduationCap,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import ReportButton from '@/components/ReportButton';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/user';
 import EndorseButton from './EndorseButton';
@@ -128,6 +129,12 @@ export default async function ProfilPage({
                     <GraduationCap className="h-4 w-4" />
                     Ajukan Mentoring
                   </Link>
+                  <ReportButton
+                    targetType="profile"
+                    targetId={id}
+                    isLoggedIn={isAuthed}
+                    className="btn-tertiary"
+                  />
                 </div>
               )}
               {isOwner && (

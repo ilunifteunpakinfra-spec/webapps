@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Megaphone, Plus, BadgeCheck } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import ReportButton from '@/components/ReportButton';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/user';
 import { asString } from '@/lib/utils';
@@ -58,6 +59,7 @@ export default async function PengumumanPage({
   let query = supabase
     .from('announcements')
     .select('*, alumni(nama)')
+    .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(30);
 
@@ -150,6 +152,14 @@ export default async function PengumumanPage({
                     {announcement.alumni?.nama && (
                       <BadgeCheck className="ml-1 inline h-3.5 w-3.5 text-primary-container" />
                     )}
+                  </span>
+                  <span className="ml-auto">
+                    <ReportButton
+                      targetType="announcement"
+                      targetId={announcement.id}
+                      isLoggedIn={Boolean(user)}
+                      className="btn-tertiary px-2 py-1 text-xs"
+                    />
                   </span>
                 </div>
               </article>

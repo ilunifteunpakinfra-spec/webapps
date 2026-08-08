@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ScrollText, Users } from 'lucide-react';
+import { LayoutDashboard, ScrollText, ShieldCheck, Users } from 'lucide-react';
 
 type Props = {
   isSuperAdmin: boolean;
@@ -14,6 +14,7 @@ export default function AdminNav({ isSuperAdmin }: Props) {
 
   const links = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, superOnly: false },
+    { href: '/admin/moderation', label: 'Moderasi', icon: ShieldCheck, superOnly: false },
     { href: '/admin/users', label: 'Pengguna', icon: Users, superOnly: true },
     { href: '/admin/audit', label: 'Audit', icon: ScrollText, superOnly: true },
   ];

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Users, Check } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import ReportButton from '@/components/ReportButton';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/user';
 import JoinGroupButton from './JoinGroupButton';
@@ -89,20 +90,28 @@ export default async function GrupDetailPage({
               <Users className="h-4 w-4" />
               {members.length} anggota
             </span>
-            {user ? (
-              isMember ? (
-                <span className="chip-active">
-                  <Check className="mr-1 inline h-4 w-4" />
-                  Anggota
-                </span>
+            <span className="flex items-center gap-2">
+              {user ? (
+                isMember ? (
+                  <span className="chip-active">
+                    <Check className="mr-1 inline h-4 w-4" />
+                    Anggota
+                  </span>
+                ) : (
+                  <JoinGroupButton groupId={id} />
+                )
               ) : (
-                <JoinGroupButton groupId={id} />
-              )
-            ) : (
-              <Link href="/login" className="btn-primary">
-                Masuk untuk Gabung
-              </Link>
-            )}
+                <Link href="/login" className="btn-primary">
+                  Masuk untuk Gabung
+                </Link>
+              )}
+              <ReportButton
+                targetType="group"
+                targetId={id}
+                isLoggedIn={Boolean(user)}
+                className="btn-tertiary"
+              />
+            </span>
           </div>
         </div>
 

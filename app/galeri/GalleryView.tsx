@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Camera, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import ReportButton from '@/components/ReportButton';
 
 export type GalleryPhoto = {
   id: string;
@@ -134,27 +135,39 @@ export default function GalleryView({ photos, isLoggedIn, children }: GalleryVie
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
         {photos.map((photo, index) => (
-          <button
+          <div
             key={photo.id}
-            type="button"
-            onClick={() => setSelectedIndex(index)}
             className="group relative aspect-square overflow-hidden rounded-lg border border-tech-black bg-white"
-            aria-label={photo.caption ?? 'Lihat foto acara'}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={photo.foto_url}
-              alt={photo.caption ?? 'Foto acara ILUNI FT ELEKTRO'}
-              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              loading="lazy"
-            />
+            <button
+              type="button"
+              onClick={() => setSelectedIndex(index)}
+              className="absolute inset-0 h-full w-full"
+              aria-label={photo.caption ?? 'Lihat foto acara'}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={photo.foto_url}
+                alt={photo.caption ?? 'Foto acara ILUNI FT ELEKTRO'}
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                loading="lazy"
+              />
+            </button>
             {photo.event_id && (
-              <span className="absolute left-2 top-2 flex items-center gap-1 rounded bg-tech-black/80 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-white">
+              <span className="pointer-events-none absolute left-2 top-2 flex items-center gap-1 rounded bg-tech-black/80 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-white">
                 <Camera className="h-3 w-3" />
                 {photo.event_id}
               </span>
             )}
-          </button>
+            <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">
+              <ReportButton
+                targetType="gallery"
+                targetId={photo.id}
+                isLoggedIn={isLoggedIn}
+                className="flex items-center gap-1 rounded bg-tech-black/80 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-white hover:bg-tech-black"
+              />
+            </div>
+          </div>
         ))}
       </div>
 

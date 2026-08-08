@@ -41,6 +41,7 @@ export default async function LowonganPage({
   let query = supabase
     .from('job_postings')
     .select('*, alumni(nama)', { count: 'exact' })
+    .eq('status', 'active')
     .or(`expired_at.is.null,expired_at.gt.${new Date().toISOString()}`)
     .order('created_at', { ascending: false });
 
@@ -54,6 +55,7 @@ export default async function LowonganPage({
   const { data: allJobs } = await supabase
     .from('job_postings')
     .select('skill_required')
+    .eq('status', 'active')
     .or(`expired_at.is.null,expired_at.gt.${new Date().toISOString()}`);
 
   const skillOptions = Array.from(

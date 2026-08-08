@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { BarChart3, Plus, CheckCircle2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import ReportButton from '@/components/ReportButton';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/user';
 import VoteButton from './VoteButton';
@@ -167,7 +168,15 @@ export default async function PollingPage() {
 
                   <div className="mt-4 flex items-center justify-between border-t border-outline-variant pt-3 text-sm text-on-surface-variant">
                     <span>{totalVotes} suara</span>
-                    <span className="chip">{expiresLabel(poll.expired_at)}</span>
+                    <span className="flex items-center gap-2">
+                      <span className="chip">{expiresLabel(poll.expired_at)}</span>
+                      <ReportButton
+                        targetType="poll"
+                        targetId={poll.id}
+                        isLoggedIn={Boolean(user)}
+                        className="btn-tertiary px-2 py-1 text-xs"
+                      />
+                    </span>
                   </div>
                 </div>
               );

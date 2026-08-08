@@ -31,6 +31,7 @@ export default async function Home() {
       supabase
         .from('job_postings')
         .select('id', { count: 'exact', head: true })
+        .eq('status', 'active')
         .or(`expired_at.is.null,expired_at.gt.${new Date().toISOString()}`),
       supabase
         .from('mentor_profiles')

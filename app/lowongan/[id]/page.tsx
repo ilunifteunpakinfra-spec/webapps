@@ -11,7 +11,9 @@ import {
   Briefcase,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import ReportButton from '@/components/ReportButton';
 import { createClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/supabase/user';
 import type { JobPostingRow } from '@/lib/types';
 
 export const metadata: Metadata = {
@@ -25,11 +27,13 @@ export default async function LowonganDetailPage({
 }) {
   const { id } = await params;
   const supabase = await createClient();
+  const user = await getCurrentUser();
 
   const { data: job } = await supabase
     .from('job_postings')
     .select('*, alumni(id, nama, pekerjaan)')
     .eq('id', id)
+    .eq('status', 'active')
     .maybeSingle();
 
   if (!job) notFound();
@@ -121,6 +125,12 @@ export default async function LowonganDetailPage({
               <Handshake className="h-4 w-4" />
               Minta Referral dari Alumni
             </Link>
+            <ReportButton
+              targetType="job"
+              targetId={job.id}
+              isLoggedIn={Boolean(user)}
+              className="btn-tertiary"
+            />
           </div>
         </div>
       </div>
