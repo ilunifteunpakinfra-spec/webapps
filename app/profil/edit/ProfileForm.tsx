@@ -425,7 +425,7 @@ export default function ProfileForm({
                 <label
                   key={option.value}
                   className={`cursor-pointer rounded border p-3 transition-colors ${
-                    (profile?.visibilitas ?? 'alumni_only') === option.value
+                    (profile?.visibilitas ?? 'public') === option.value
                       ? 'border-primary-container bg-surface-container'
                       : 'border-wire-gray'
                   }`}
@@ -434,7 +434,7 @@ export default function ProfileForm({
                     type="radio"
                     name="visibilitas"
                     value={option.value}
-                    defaultChecked={(profile?.visibilitas ?? 'alumni_only') === option.value}
+                    defaultChecked={(profile?.visibilitas ?? 'public') === option.value}
                     className="sr-only"
                   />
                   <span className="flex items-center gap-2 font-medium">

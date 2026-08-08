@@ -45,6 +45,10 @@ export async function ensureAlumniProfile(user: User) {
       no_telepon:
         typeof metadata.no_telepon === 'string' ? metadata.no_telepon : null,
       email: user.email ?? '',
+      // New profiles are publicly visible so the public directory/homepage
+      // reflects real registrations; users can opt out via the visibility
+      // selector on the profile edit page (alumni_only / private).
+      visibilitas: 'public',
     })
     .select('id')
     .single();
@@ -66,7 +70,7 @@ export async function updateProfileAction(
 
   const nama = String(formData.get('nama') ?? '').trim();
   const tahunLulus = Number(formData.get('tahun_lulus'));
-  const visibilitas = String(formData.get('visibilitas') ?? 'alumni_only') as Visibility;
+  const visibilitas = String(formData.get('visibilitas') ?? 'public') as Visibility;
 
   if (!nama) return { error: 'Nama wajib diisi.' };
   if (!Number.isFinite(tahunLulus) || tahunLulus < 1960) {
