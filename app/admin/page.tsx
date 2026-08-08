@@ -9,8 +9,13 @@ import {
   FileUp,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import AdminNav from '@/components/admin/AdminNav';
 import { createClient } from '@/lib/supabase/server';
-import { getCurrentUser, isAdminUser } from '@/lib/supabase/user';
+import {
+  getCurrentUser,
+  isAdminUser,
+  isSuperAdmin,
+} from '@/lib/supabase/user';
 import VerifyButton from './VerifyButton';
 import ImportCsv from './ImportCsv';
 
@@ -101,6 +106,8 @@ export default async function AdminPage() {
             Export CSV
           </a>
         </div>
+
+        <AdminNav isSuperAdmin={isSuperAdmin(user)} />
 
         {/* Stats */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

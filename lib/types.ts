@@ -61,6 +61,19 @@ export type JobPostingRow = {
   created_at?: string;
 };
 
+/** Row shape returned by the `admin_list_users` RPC (users page). */
+export type AdminUserRow = {
+  id: string;
+  email: string | null;
+  nama: string | null;
+  angkatan: string | null;
+  role: string | null;
+  capabilities: string[];
+  status_verifikasi: boolean | null;
+  banned_until: string | null;
+  created_at: string;
+};
+
 /** Return shape shared by all server action stateful functions. */
 export type ActionState = {
   error?: string;

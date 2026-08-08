@@ -9,6 +9,8 @@
 -- tables. Only use on an empty/development project.
 -- ============================================
 
+DROP TABLE IF EXISTS content_reports CASCADE;
+DROP TABLE IF EXISTS admin_activity_log CASCADE;
 DROP TABLE IF EXISTS event_gallery CASCADE;
 DROP TABLE IF EXISTS poll_votes CASCADE;
 DROP TABLE IF EXISTS poll_options CASCADE;
@@ -34,3 +36,12 @@ DROP TYPE IF EXISTS group_role_enum CASCADE;
 
 DROP FUNCTION IF EXISTS is_admin() CASCADE;
 DROP FUNCTION IF EXISTS update_updated_at() CASCADE;
+DROP FUNCTION IF EXISTS has_admin_capability(TEXT) CASCADE;
+DROP FUNCTION IF EXISTS admin_set_role(UUID, TEXT, TEXT[]) CASCADE;
+DROP FUNCTION IF EXISTS admin_ban_user(UUID, TIMESTAMPTZ) CASCADE;
+DROP FUNCTION IF EXISTS admin_unban_user(UUID) CASCADE;
+DROP FUNCTION IF EXISTS admin_log_activity(TEXT, TEXT, UUID, JSONB) CASCADE;
+DROP FUNCTION IF EXISTS admin_list_users(TEXT) CASCADE;
+DROP FUNCTION IF EXISTS admin_migrate_roles() CASCADE;
+DROP FUNCTION IF EXISTS auth_sync_app_role() CASCADE;
+DROP TRIGGER IF EXISTS trg_auth_sync_app_role ON auth.users;

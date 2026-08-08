@@ -36,6 +36,15 @@ export async function verifyAlumniAction(
 
   if (error) return { error: error.message };
 
+  // Record the action in the audit log (best-effort; the admin-gated RPC
+  // returns false when the caller is not an admin).
+  await supabase.rpc('admin_log_activity', {
+    p_aksi: 'verify_alumni',
+    p_target_type: 'alumni',
+    p_target_id: alumniId,
+    p_detail: null,
+  });
+
   revalidatePath('/admin');
   return { success: true };
 }

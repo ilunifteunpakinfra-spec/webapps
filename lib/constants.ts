@@ -27,3 +27,44 @@ export const DIRECTORY_PAGE_SIZE = 12;
 export const ADMIN_ROLES = ['super_admin', 'admin'] as const;
 
 export type AdminRole = (typeof ADMIN_ROLES)[number];
+
+/** Roles that can manage other users (promote/demote/ban) and view audits. */
+export const SUPER_ADMIN_ROLES = ['super_admin'] as const;
+
+export type SuperAdminRole = (typeof SUPER_ADMIN_ROLES)[number];
+
+/**
+ * Capability catalog for delegated admins. `super_admin` implicitly holds
+ * every capability; a regular `admin` holds exactly what the superadmin
+ * granted at promotion time. Stored in `raw_app_meta_data` (server-managed).
+ */
+export const ADMIN_CAPABILITIES = [
+  'manage_users', // promote/demote/ban (in practice super_admin only)
+  'manage_alumni', // edit/delete alumni records, bulk verify
+  'moderate_jobs', // delete/close job postings
+  'moderate_announcements', // delete announcements
+  'moderate_polls', // delete/close polls
+  'moderate_groups', // delete groups / remove members
+  'moderate_gallery', // delete gallery photos (incl. storage object)
+  'moderate_reports', // resolve/dismiss community reports
+  'view_audit', // read admin activity log
+  'import_export', // CSV import/export
+] as const;
+
+export type AdminCapability = (typeof ADMIN_CAPABILITIES)[number];
+
+/** Capabilities granted by default when promoting a user to `admin`. */
+export const DEFAULT_ADMIN_CAPABILITIES: readonly AdminCapability[] =
+  ADMIN_CAPABILITIES.filter((cap) => cap !== 'manage_users');
+
+/** Content types that can be reported through the community report flow. */
+export const REPORT_TARGETS = [
+  'job',
+  'announcement',
+  'poll',
+  'group',
+  'gallery',
+  'profile',
+] as const;
+
+export type ReportTarget = (typeof REPORT_TARGETS)[number];

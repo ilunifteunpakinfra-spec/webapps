@@ -52,11 +52,16 @@ RESPONSE=$(curl -s -X POST \
   -d "{
     \"email\": \"$ADMIN_EMAIL\",
     \"password\": \"$ADMIN_PASSWORD\",
-    \"email_confirm\": true,
-    \"user_metadata\": {
-      \"role\": \"$ADMIN_ROLE\",
-      \"nama\": \"$ADMIN_NAME\"
+    "email_confirm": true,
+    "user_metadata": {
+      "role": "$ADMIN_ROLE",
+      "nama": "$ADMIN_NAME"
+    },
+    "app_metadata": {
+      "role": "$ADMIN_ROLE",
+      "capabilities": []
     }
+  }})
   }")
 
 # Check if creation was successful

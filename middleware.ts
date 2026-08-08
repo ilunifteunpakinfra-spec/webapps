@@ -1,9 +1,12 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { ADMIN_ROLES } from '@/lib/constants';
+import { ADMIN_ROLES, SUPER_ADMIN_ROLES } from '@/lib/constants';
 
 /** Routes only administrators can access. */
 const ADMIN_PREFIXES = ['/admin'];
+
+/** Routes only the super admin can access. */
+const SUPER_ADMIN_PREFIXES = ['/admin/users', '/admin/audit'];
 
 /** Routes that require an authenticated session. */
 const PROTECTED_PREFIXES = [
@@ -64,10 +67,24 @@ export async function updateSession(request: NextRequest) {
     }
 
     if (isAdminRoute) {
-      const role = user.user_metadata?.role as string | undefined;
+      // Role claims live in app_metadata (server-managed); user_metadata is
+      // client-editable and never trusted for authorization.
+      const role = user.app_metadata?.role as string | undefined;
       if (!ADMIN_ROLES.includes(role as (typeof ADMIN_ROLES)[number])) {
         const url = request.nextUrl.clone();
         url.pathname = '/';
+        return NextResponse.redirect(url);
+      }
+
+      const isSuperAdminPrefix = SUPER_ADMIN_PREFIXES.some((prefix) =>
+        pathname.startsWith(prefix)
+      );
+      if (
+        isSuperAdminPrefix &&
+        !SUPER_ADMIN_ROLES.includes(role as (typeof SUPER_ADMIN_ROLES)[number])
+      ) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/admin';
         return NextResponse.redirect(url);
       }
     }
