@@ -54,12 +54,12 @@ export default function ImportCsv() {
         </button>
       </form>
       <a
-        href="/api/admin/export"
+        href="/api/admin/import/template"
         download
         className="inline-flex items-center gap-2 text-sm font-medium text-primary-container hover:underline"
       >
         <Download className="h-4 w-4" />
-        Unduh template CSV (Export)
+        Unduh template CSV (Import)
       </a>
       {result?.error && (
         <p className="text-xs text-error-on-container">{result.error}</p>

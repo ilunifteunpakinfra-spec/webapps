@@ -1,17 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { isAdminUser } from '@/lib/supabase/user';
 import { NextResponse } from 'next/server';
-
-const IMPORT_COLUMNS = [
-  'nama',
-  'angkatan',
-  'tahun_lulus',
-  'pekerjaan',
-  'perusahaan',
-  'email',
-  'no_telepon',
-  'alamat_tinggal',
-] as const;
+import { IMPORT_COLUMNS } from '@/lib/csv-import';
 
 type ImportRow = {
   nama: string;
@@ -21,7 +11,7 @@ type ImportRow = {
   perusahaan: string | null;
   email: string;
   no_telepon: string | null;
-  alamat_tinggal: string | null;
+  status_open_to_work: boolean;
 };
 
 /**
@@ -64,6 +54,14 @@ function parseCsv(text: string): string[][] {
   row.push(cell);
   if (row.some((value) => value.trim() !== '')) rows.push(row);
   return rows;
+}
+
+/** Parse a human-friendly boolean cell; empty counts as false, invalid returns null. */
+function parseBooleanCell(raw: string): boolean | null {
+  const value = raw.trim().toLowerCase();
+  if (value === '' || ['false', '0', 'tidak', 't', 'no'].includes(value)) return false;
+  if (['true', '1', 'ya', 'y', 'yes'].includes(value)) return true;
+  return null;
 }
 
 /** Bulk import alumni from CSV. Only admin users (RLS bypass) can import. */
@@ -109,6 +107,7 @@ export async function POST(request: Request) {
     const nama = get('nama');
     const email = get('email');
     const tahunRaw = Number(get('tahun_lulus'));
+    const openToWork = parseBooleanCell(get('status_open_to_work'));
 
     if (!nama || !email) {
       errors.push(`Baris ${lineNumber}: nama dan email wajib diisi.`);
@@ -116,6 +115,12 @@ export async function POST(request: Request) {
     }
     if (!Number.isInteger(tahunRaw) || tahunRaw < 1950 || tahunRaw > new Date().getFullYear() + 1) {
       errors.push(`Baris ${lineNumber}: tahun_lulus tidak valid (${get('tahun_lulus')}).`);
+      return;
+    }
+    if (openToWork === null) {
+      errors.push(
+        `Baris ${lineNumber}: status_open_to_work tidak valid (${get('status_open_to_work')}). Gunakan true/false, ya/tidak, atau 1/0.`
+      );
       return;
     }
 
@@ -127,7 +132,7 @@ export async function POST(request: Request) {
       perusahaan: get('perusahaan') || null,
       email,
       no_telepon: get('no_telepon') || null,
-      alamat_tinggal: get('alamat_tinggal') || null,
+      status_open_to_work: openToWork,
     });
   });
 
@@ -139,6 +144,8 @@ export async function POST(request: Request) {
   }
 
   // Upsert by unique email so re-importing refreshes existing profiles.
+  // `status_verifikasi` dan `created_at` dikelola database: baris baru otomatis
+  // status_verifikasi=false dan created_at = tanggal & waktu import.
   const { error } = await supabase
     .from('alumni')
     .upsert(data, { onConflict: 'email' });

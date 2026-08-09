@@ -222,8 +222,9 @@ export default async function AdminPage() {
           </h2>
           <p className="mb-3 text-sm text-on-surface-variant">
             Unggah CSV dengan kolom: nama, angkatan, tahun_lulus, pekerjaan, perusahaan,
-            email, no_telepon, alamat_tinggal. Baris dengan email yang sama akan
-            diperbarui.
+            email, no_telepon, status_open_to_work (true/false, ya/tidak, atau 1/0).
+            Baris dengan email yang sama akan diperbarui. Status verifikasi otomatis
+            false dan tanggal dibuat mengikuti waktu import.
           </p>
           <ImportCsv />
         </div>
