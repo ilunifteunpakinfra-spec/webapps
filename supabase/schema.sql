@@ -413,6 +413,26 @@ CREATE POLICY "creator_manage_group"
 -- ============================================
 -- 5.11 GROUP MEMBERS POLICIES
 -- ============================================
+-- Helper: apakah user saat ini admin_grup dari grup tsb? SECURITY DEFINER
+-- agar policy bisa mengecek keanggotaan tanpa memicu RLS ulang pada
+-- group_members (menghindari infinite recursion).
+CREATE OR REPLACE FUNCTION public.is_group_admin(p_group_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.group_members
+    WHERE group_id = p_group_id
+      AND alumni_id = auth.uid()
+      AND role = 'admin_grup'
+  );
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.is_group_admin(UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.is_group_admin(UUID) TO authenticated;
+
 CREATE POLICY "public_read_group_members"
   ON group_members FOR SELECT
   USING (true);
@@ -423,14 +443,8 @@ CREATE POLICY "auth_join_groups"
 
 CREATE POLICY "admin_manage_members"
   ON group_members FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM group_members gm
-      WHERE gm.group_id = group_members.group_id
-        AND gm.alumni_id = auth.uid()
-        AND gm.role = 'admin_grup'
-    )
-  );
+  USING (public.is_group_admin(group_id))
+  WITH CHECK (public.is_group_admin(group_id));
 
 -- ============================================
 -- 5.12 POLLS POLICIES
