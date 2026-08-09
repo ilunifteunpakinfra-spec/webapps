@@ -691,7 +691,8 @@ BEGIN
 
   -- Strip capabilities not in the whitelist; non-admins get none.
   IF new_role = 'admin' THEN
-    SELECT ARRAY(SELECT unnest(capabilities) WHERE unnest = ANY(valid_caps))
+    SELECT ARRAY(SELECT cap FROM unnest(capabilities) AS t(cap)
+                 WHERE t.cap = ANY(valid_caps))
       INTO effective_caps;
   ELSE
     effective_caps := ARRAY[]::TEXT[];

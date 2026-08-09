@@ -169,7 +169,8 @@ BEGIN
   SELECT raw_app_meta_data->>'role' INTO caller_role FROM auth.users WHERE id = auth.uid();
   IF caller_role IS DISTINCT FROM 'super_admin' THEN RETURN false; END IF;
   -- strip any capability not in the whitelist
-  SELECT ARRAY(SELECT unnest(capabilities) WHERE unnest = ANY(valid_caps))
+  SELECT ARRAY(SELECT cap FROM unnest(capabilities) AS t(cap)
+               WHERE t.cap = ANY(valid_caps))
     INTO capabilities;
   UPDATE auth.users SET raw_app_meta_data =
     COALESCE(raw_app_meta_data, '{}'::jsonb)
