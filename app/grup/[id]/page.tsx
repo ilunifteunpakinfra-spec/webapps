@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Users, Check } from 'lucide-react';
+import { ArrowLeft, Users, Check, Plus, MessageSquare } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import ReportButton from '@/components/ReportButton';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/user';
+import { timeAgo } from '@/lib/utils';
 import JoinGroupButton from './JoinGroupButton';
 
 export const metadata: Metadata = {
@@ -54,6 +55,37 @@ export default async function GrupDetailPage({
   const currentUserRole = user
     ? members.find((row) => row.alumni_id === user.id)?.role
     : undefined;
+
+  // Forum diskusi grup: thread terbaru + jumlah balasan per thread.
+  const { data: threadRows } = await supabase
+    .from('group_threads')
+    .select('id, judul, author_id, created_at, alumni(nama)')
+    .eq('group_id', id)
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  const threads = (threadRows ?? []) as unknown as {
+    id: string;
+    judul: string;
+    author_id: string;
+    created_at: string | null;
+    alumni: { id: string; nama: string } | null;
+  }[];
+
+  const { data: replyCountRows } = threads.length
+    ? await supabase
+        .from('group_thread_replies')
+        .select('thread_id')
+        .in(
+          'thread_id',
+          threads.map((thread) => thread.id)
+        )
+    : { data: [] };
+
+  const replyCounts = new Map<string, number>();
+  for (const row of replyCountRows ?? []) {
+    replyCounts.set(row.thread_id, (replyCounts.get(row.thread_id) ?? 0) + 1);
+  }
 
   return (
     <div className="min-h-screen bg-surface">
@@ -114,6 +146,50 @@ export default async function GrupDetailPage({
             </span>
           </div>
         </div>
+
+        {/* Diskusi */}
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="section-title">Diskusi</h2>
+          {user && isMember && (
+            <Link href={`/grup/${id}/thread/baru`} className="btn-secondary">
+              <Plus className="h-4 w-4" />
+              Buat Thread
+            </Link>
+          )}
+        </div>
+
+        {threads.length > 0 ? (
+          <div className="space-y-3">
+            {threads.map((thread) => (
+              <Link
+                key={thread.id}
+                href={`/grup/${id}/thread/${thread.id}`}
+                className="card block transition-colors hover:bg-surface-container"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="truncate font-montserrat font-bold text-on-surface">
+                      {thread.judul}
+                    </h3>
+                    <p className="mt-1 text-sm text-on-surface-variant">
+                      Oleh {thread.alumni?.nama ?? 'Alumni'} ·{' '}
+                      {timeAgo(thread.created_at)}
+                    </p>
+                  </div>
+                  <span className="chip shrink-0">
+                    <MessageSquare className="mr-1 inline h-3.5 w-3.5" />
+                    {replyCounts.get(thread.id) ?? 0} balasan
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="card text-center text-on-surface-variant">
+            Belum ada thread diskusi di grup ini. Jadilah yang pertama memulai
+            diskusi!
+          </div>
+        )}
 
         {/* Members */}
         <h2 className="section-title mb-4">Anggota</h2>

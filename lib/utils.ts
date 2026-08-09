@@ -33,6 +33,15 @@ export function formatDate(iso: string | null | undefined): string {
   });
 }
 
+/** "2 hari lalu" style relative time from an ISO timestamp. */
+export function timeAgo(iso: string | null | undefined): string {
+  if (!iso) return 'Baru';
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
+  if (days <= 0) return 'Hari ini';
+  if (days === 1) return 'Kemarin';
+  return `${days} hari lalu`;
+}
+
 /** Sanitize a relative path for safe redirects (prevents open redirects). */
 export function safePath(value: string | undefined, fallback = '/'): string {
   if (value && value.startsWith('/') && !value.startsWith('//')) return value;
