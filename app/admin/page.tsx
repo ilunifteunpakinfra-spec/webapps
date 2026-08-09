@@ -13,6 +13,7 @@ import AdminNav from '@/components/admin/AdminNav';
 import { createClient } from '@/lib/supabase/server';
 import {
   getCurrentUser,
+  hasCapability,
   isAdminUser,
   isSuperAdmin,
 } from '@/lib/supabase/user';
@@ -107,7 +108,10 @@ export default async function AdminPage() {
           </a>
         </div>
 
-        <AdminNav isSuperAdmin={isSuperAdmin(user)} />
+        <AdminNav
+          isSuperAdmin={isSuperAdmin(user)}
+          showAlumni={hasCapability(user, 'manage_alumni')}
+        />
 
         {/* Stats */}
         <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

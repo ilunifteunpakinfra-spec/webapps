@@ -2,27 +2,36 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ScrollText, ShieldCheck, Users } from 'lucide-react';
+import {
+  GraduationCap,
+  LayoutDashboard,
+  ScrollText,
+  ShieldCheck,
+  Users,
+} from 'lucide-react';
 
 type Props = {
   isSuperAdmin: boolean;
+  /** Whether the Alumni section is visible (manage_alumni capability). */
+  showAlumni?: boolean;
 };
 
 /** Shared sub-navigation for the /admin section. */
-export default function AdminNav({ isSuperAdmin }: Props) {
+export default function AdminNav({ isSuperAdmin, showAlumni = true }: Props) {
   const pathname = usePathname();
 
   const links = [
-    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, superOnly: false },
-    { href: '/admin/moderation', label: 'Moderasi', icon: ShieldCheck, superOnly: false },
-    { href: '/admin/users', label: 'Pengguna', icon: Users, superOnly: true },
-    { href: '/admin/audit', label: 'Audit', icon: ScrollText, superOnly: true },
+    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, superOnly: false, visible: true },
+    { href: '/admin/moderation', label: 'Moderasi', icon: ShieldCheck, superOnly: false, visible: true },
+    { href: '/admin/alumni', label: 'Alumni', icon: GraduationCap, superOnly: false, visible: showAlumni },
+    { href: '/admin/users', label: 'Pengguna', icon: Users, superOnly: true, visible: true },
+    { href: '/admin/audit', label: 'Audit', icon: ScrollText, superOnly: true, visible: true },
   ];
 
   return (
     <nav className="flex flex-wrap gap-1 border-b border-outline-variant pb-2">
       {links
-        .filter((link) => !link.superOnly || isSuperAdmin)
+        .filter((link) => link.visible && (!link.superOnly || isSuperAdmin))
         .map((link) => {
           const active =
             link.href === '/admin'

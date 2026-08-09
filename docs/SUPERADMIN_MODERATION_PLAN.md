@@ -107,10 +107,10 @@ This plan proposes **4 feature groups** delivered in **4 phases**, with zero bre
 - SECURITY DEFINER RPC `admin_log_activity(aksi, target_type, target_id, detail)` called by every admin mutation.
 - `app/admin/audit/page.tsx` — filterable log (action, admin, target, timestamp).
 
-### F6 — Alumni Management (Admin CRUD)
-- `app/admin/alumni/page.tsx` — full table with server-side pagination (reuse `DIRECTORY_PAGE_SIZE` pattern).
-- `app/actions/alumni-admin.ts`: `updateAlumniAdminAction` (edit any field, e.g. fix typos, angkatan), `deleteAlumniAdminAction` (cascade removes profile + related rows), `resetContributionAction`, `bulkVerifyAction` (list of ids), `unverifyAlumniAction`.
-- Existing `verifyAlumniAction` extended to record `verified_by`/`verified_at` in the audit log (no schema column needed).
+### F6 — Alumni Management (Admin CRUD) ✅ SHIPPED (Phase 3)
+- `app/admin/alumni/page.tsx` — full table with server-side pagination + search (nama/angkatan/pekerjaan/perusahaan/email).
+- `app/actions/alumni-admin.ts`: `updateAlumniAdminAction` (edit any field, e.g. fix typos, angkatan), `deleteAlumniAdminAction` (cascade removes profile + related rows + storage objects + auth account), `resetContributionAction`, `bulkVerifyAction` (list of ids), `unverifyAlumniAction`.
+- Verification actions record `verify/unverify` entries in the audit log via `admin_log_activity` (no schema column needed).
 
 ### F7 — Dashboard & Moderation KPIs
 - Extend `app/admin/page.tsx`: pending reports count, flagged-content count, unverified ratio, registrations per month (mini bar chart), quick links to new admin sections.
@@ -325,9 +325,14 @@ components/admin/StatusBadge.tsx    # role / verification / report status badge
 - ✅ Public reads filter `status='active'` (lowongan list + skill chips + detail, pengumuman, home jobs count).
 - ⚠️ Exit criteria: tsc + build clean, live smoke of hide/restore + gallery delete RPC, deploy, commit — **in progress**.
 
-### Phase 3 — Alumni Admin (1 day)
-- `app/admin/alumni/page.tsx` (search + pagination), edit-any-profile form, delete account, bulk verify, unverify, reset contribution.
-- CSV import extended to accept `role` hints? (defer — keep import contract stable).
+### Phase 3 — Alumni Admin (1 day) ✅ SHIPPED
+- ✅ Migration `0004_alumni_admin.sql` (`admin_delete_alumni` SECURITY DEFINER RPC: full account deletion — alumni row cascade + storage objects + `auth.users`) + `0005_storage_delete_fix.sql` (sets `storage.allow_delete_query` GUC — Supabase's `protect_objects_delete` trigger blocks direct `storage.objects` DELETE otherwise; also fixes the same latent bug in `admin_delete_gallery_photo` from Phase 2). Applied to live + synced `schema.sql`/`apply-all.sql`/`reset.sql`.
+- ✅ `app/admin/alumni/page.tsx` — search (nama/angkatan/pekerjaan/perusahaan/email) + server-side pagination (20/page), gated on `manage_alumni` (not super-only).
+- ✅ `app/actions/alumni-admin.ts` — updateAlumniAdminAction / deleteAlumniAdminAction / verifyAlumniAction / unverifyAlumniAction / bulkVerifyAlumniAction / resetContributionAction; all capability-gated (`requireCapability('manage_alumni')`) + audited via `admin_log_activity`.
+- ✅ `app/admin/alumni/AlumniTable.tsx` + `EditAlumniModal.tsx` — bulk selection + verify bar, per-row edit modal, verify/unverify, reset contribution, delete with confirm (self-delete hidden; RPC blocks it too).
+- ✅ `AdminNav` gains Alumni link (`showAlumni` prop, visible per `manage_alumni` capability; call sites updated in dashboard + moderation; super-only pages default to shown).
+- ✅ CSV import contract stays stable (no role column — deferred as planned).
+- ✅ Exit criteria: tsc + build clean (32 routes), live migration applied, live smoke passed (superadmin → `admin_delete_alumni` → true; alumni row + auth account deleted; non-admin attacker → false).
 
 ### Phase 4 — KPIs & Polish (1 day)
 - Dashboard: pending reports, unverified %, registrations/month.
@@ -349,7 +354,7 @@ components/admin/StatusBadge.tsx    # role / verification / report status badge
 
 ## 10. Validation Plan
 
-- `bunx tsc --noEmit` + `bun run build` (27 routes) after each phase.
+- `bunx tsc --noEmit` + `bun run build` (32 routes) after each phase.
 - Supabase MCP: `apply_migration` on `zotizozgkzzuhrwbxoud`, `execute_sql` spot-checks, `get_advisors` for new warnings.
 - Manual smoke: super_admin login → promote admin → admin logs in → ban user → verify banned login blocked → delete a test job → check audit log rows.
 - Live deploy: `vercel deploy --prod` after code changes.

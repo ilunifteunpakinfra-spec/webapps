@@ -4,7 +4,6 @@
 -- DESTRUCTIVE: drops existing ILUNI tables/types first.
 -- Paste the ENTIRE file once into Dashboard -> SQL Editor.
 -- ============================================
-
 -- ============================================
 -- ILUNI FTE WebApps - RESET SCRIPT
 -- ============================================
@@ -50,14 +49,10 @@ DROP FUNCTION IF EXISTS admin_unban_user(UUID) CASCADE;
 DROP FUNCTION IF EXISTS admin_log_activity(TEXT, TEXT, UUID, JSONB) CASCADE;
 DROP FUNCTION IF EXISTS admin_list_users(TEXT) CASCADE;
 DROP FUNCTION IF EXISTS admin_delete_gallery_photo(UUID) CASCADE;
+DROP FUNCTION IF EXISTS admin_delete_alumni(UUID) CASCADE;
 DROP FUNCTION IF EXISTS admin_migrate_roles() CASCADE;
 DROP FUNCTION IF EXISTS auth_sync_app_role() CASCADE;
 DROP TRIGGER IF EXISTS trg_auth_sync_app_role ON auth.users;
-
--- ============================================
--- SCHEMA (supabase/schema.sql)
--- ============================================
-
 -- ============================================
 -- ILUNI FT ELEKTRO UNPAK - Alumni Database & Networking Platform
 -- Complete Supabase Schema (BRD v3.0)
@@ -949,6 +944,7 @@ BEGIN
   -- foto_url is a public URL: .../storage/v1/object/public/gallery/<path>
   v_path := split_part(v_url, '/object/public/gallery/', 2);
   IF v_path <> '' THEN
+    PERFORM set_config('storage.allow_delete_query', 'true', true);
     DELETE FROM storage.objects
     WHERE bucket_id = 'gallery' AND name = v_path;
   END IF;
@@ -965,11 +961,48 @@ $$;
 
 REVOKE EXECUTE ON FUNCTION public.admin_delete_gallery_photo(UUID) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_delete_gallery_photo(UUID) TO authenticated;
--- ============================================
--- STORAGE POLICIES (supabase/storage-policies.sql)
--- ============================================
 
--- ============================================
+-- 9.4 FULL ACCOUNT DELETION RPC
+-- Deletes the alumni profile row (FKs cascade to related content), the
+-- user's storage objects, and the auth.users account. SECURITY DEFINER
+-- runs as the owner so storage RLS is never bypassed from the client.
+-- Capability `manage_alumni` is enforced inside; self-deletion forbidden.
+CREATE OR REPLACE FUNCTION public.admin_delete_alumni(p_target_uid UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+  IF NOT public.has_admin_capability('manage_alumni') THEN RETURN false; END IF;
+  IF p_target_uid IS NULL OR p_target_uid = auth.uid() THEN RETURN false; END IF;
+
+  -- Allow direct storage.object deletion (Supabase storage guard).
+  PERFORM set_config('storage.allow_delete_query', 'true', true);
+
+  -- 1. Remove the user's storage objects (paths are `<uid>/<file>`).
+  DELETE FROM storage.objects
+  WHERE (bucket_id = 'avatars'  AND name LIKE p_target_uid::text || '/%')
+     OR (bucket_id = 'resumes'  AND name LIKE p_target_uid::text || '/%')
+     OR (bucket_id = 'gallery'  AND name LIKE p_target_uid::text || '/%');
+
+  -- 2. Delete the alumni profile; FKs cascade to related content.
+  DELETE FROM public.alumni WHERE id = p_target_uid;
+  IF NOT FOUND THEN RETURN false; END IF;
+
+  -- 3. Remove the auth account so the user can no longer sign in.
+  DELETE FROM auth.users WHERE id = p_target_uid;
+
+  RETURN true;
+END;
+$$;
+
+-- 9.5 GRANTS
+-- Authenticated only (never anon). REVOKE FROM PUBLIC is required —
+-- Supabase auto-grants new functions to anon/authenticated/service_role.
+
+REVOKE EXECUTE ON FUNCTION public.admin_delete_alumni(UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_delete_alumni(UUID) TO authenticated;-- ============================================
 -- ILUNI FTE WebApps - Storage Bucket Policies
 -- ============================================
 -- Apply AFTER supabase/schema.sql (buckets must

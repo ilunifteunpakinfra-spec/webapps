@@ -74,6 +74,26 @@ export type AdminUserRow = {
   created_at: string;
 };
 
+/** Row shape for the admin alumni management table (/admin/alumni). */
+export type AlumniAdminRow = {
+  id: string;
+  nama: string;
+  angkatan: string | null;
+  tahun_lulus: number | null;
+  pekerjaan: string | null;
+  perusahaan: string | null;
+  email: string | null;
+  no_telepon: string | null;
+  linkedin: string | null;
+  bio_singkat: string | null;
+  portofolio_url: string | null;
+  contribution_score: number | null;
+  status_open_to_work: boolean | null;
+  status_verifikasi: boolean | null;
+  visibilitas: string | null;
+  created_at: string | null;
+};
+
 /** Return shape shared by all server action stateful functions. */
 export type ActionState = {
   error?: string;

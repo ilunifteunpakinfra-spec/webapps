@@ -139,7 +139,10 @@ export default async function AdminModerationPage({
           </p>
         </div>
 
-        <AdminNav isSuperAdmin={isSuperAdmin(user)} />
+        <AdminNav
+          isSuperAdmin={isSuperAdmin(user)}
+          showAlumni={hasCapability(user, 'manage_alumni')}
+        />
 
         {/* Tabs */}
         <div className="mt-6 flex gap-2">
