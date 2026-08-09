@@ -24,6 +24,17 @@ export default defineConfig({
     '**/SUPERADMIN_MODERATION_PLAN.md',
   ],
 
+  // Penting: jangan biarkan Vite memuat postcss.config.js milik app Next.js
+  // di root repo (mereferensikan plugin tailwindcss yang tidak ada di
+  // node_modules docs). Timpa dengan PostCSS kosong agar build deterministik.
+  vite: {
+    css: {
+      postcss: {
+        plugins: [],
+      },
+    },
+  },
+
   head: [
     ['meta', { name: 'theme-color', content: '#1b3a5c' }],
     [
