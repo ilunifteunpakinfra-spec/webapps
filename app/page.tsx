@@ -117,10 +117,10 @@ export default async function Home() {
               <div className="flex flex-wrap gap-2">
                 <select name="angkatan" className="input-field w-auto">
                   <option value="">Angkatan</option>
-                  <option value="'20">'20</option>
-                  <option value="'15">'15</option>
-                  <option value="'10">'10</option>
-                  <option value="'05">'05</option>
+                  <option value="'20">&apos;20</option>
+                  <option value="'15">&apos;15</option>
+                  <option value="'10">&apos;10</option>
+                  <option value="'05">&apos;05</option>
                 </select>
                 <select name="pekerjaan" className="input-field w-auto">
                   <option value="">Pekerjaan</option>
