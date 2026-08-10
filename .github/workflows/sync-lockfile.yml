@@ -1,0 +1,45 @@
+name: Sync Bun Lockfile
+
+# Dependabot (package-ecosystem: npm) hanya memperbarui package.json dan
+# package-lock.json. Proyek ini menggunakan Bun, sehingga bun.lock harus
+# disinkronkan agar CI (bun install --frozen-lockfile) tidak gagal pada
+# PR Dependabot. Workflow ini mengerjakan sinkronisasi tersebut secara otomatis.
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Sync bun.lock
+    if: startsWith(github.head_ref, 'dependabot/npm_and_yarn/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies (updates bun.lock)
+        run: bun install
+
+      - name: Commit lockfile changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add bun.lock
+          if git diff --cached --quiet; then
+            echo "bun.lock is up to date - nothing to commit"
+          else
+            git commit -m "chore(deps): sync bun.lock with package.json"
+            git push
+          fi
