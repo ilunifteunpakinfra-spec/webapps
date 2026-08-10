@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import { createClient } from '@/lib/supabase/server';
-import { getCurrentUser } from '@/lib/supabase/user';
+import { getCurrentUser, isAdminUser } from '@/lib/supabase/user';
 import { ensureAlumniProfile } from '@/app/actions/alumni';
 import type { AlumniSkillRow } from '@/lib/types';
 import ProfileForm from './ProfileForm';
@@ -40,6 +40,7 @@ export default async function ProfileEditPage() {
           profile={profile ?? undefined}
           skills={skills ?? []}
           currentSkills={(currentSkills ?? []) as unknown as AlumniSkillRow[]}
+          canPrivate={isAdminUser(user)}
         />
       </div>
     </div>

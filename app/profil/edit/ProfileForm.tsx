@@ -40,10 +40,12 @@ export default function ProfileForm({
   profile,
   skills,
   currentSkills,
+  canPrivate = false,
 }: {
   profile?: AlumniRow;
   skills: SkillRow[];
   currentSkills: AlumniSkillRow[];
+  canPrivate?: boolean;
 }) {
   const router = useRouter();
 
@@ -66,6 +68,16 @@ export default function ProfileForm({
   const resumeInputRef = useRef<HTMLInputElement>(null);
 
   const isOpenToWork = Boolean(profile?.status_open_to_work);
+
+  // "Pribadi" (private) is an admin-only option. Non-admin profiles that
+  // already have `private` fall back to "Publik" so a radio stays selected.
+  const visibleOptions = VISIBILITY_OPTIONS.filter(
+    (option) => option.value !== 'private' || canPrivate
+  );
+  const initialVisibility =
+    profile?.visibilitas === 'private' && !canPrivate
+      ? 'public'
+      : (profile?.visibilitas ?? 'public');
 
   async function handleAvatarChange(file: File | undefined) {
     if (!file) return;
@@ -421,11 +433,11 @@ export default function ProfileForm({
           <div>
             <label className="label-mono mb-1 block">Visibilitas Profil</label>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-              {VISIBILITY_OPTIONS.map((option) => (
+              {visibleOptions.map((option) => (
                 <label
                   key={option.value}
                   className={`cursor-pointer rounded border p-3 transition-colors ${
-                    (profile?.visibilitas ?? 'public') === option.value
+                    initialVisibility === option.value
                       ? 'border-primary-container bg-surface-container'
                       : 'border-wire-gray'
                   }`}
@@ -434,7 +446,7 @@ export default function ProfileForm({
                     type="radio"
                     name="visibilitas"
                     value={option.value}
-                    defaultChecked={(profile?.visibilitas ?? 'public') === option.value}
+                    defaultChecked={initialVisibility === option.value}
                     className="sr-only"
                   />
                   <span className="flex items-center gap-2 font-medium">

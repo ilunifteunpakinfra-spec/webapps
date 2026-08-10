@@ -6,6 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { isAdminUser } from '@/lib/supabase/user';
 import type { User } from '@supabase/supabase-js';
 import type { ActionState, Visibility } from '@/lib/types';
 
@@ -78,6 +79,9 @@ export async function updateProfileAction(
   }
   if (!VISIBILITIES.includes(visibilitas)) {
     return { error: 'Visibilitas profil tidak valid.' };
+  }
+  if (visibilitas === 'private' && !isAdminUser(user)) {
+    return { error: 'Opsi visibilitas Pribadi hanya tersedia untuk admin.' };
   }
 
   const { error } = await supabase
