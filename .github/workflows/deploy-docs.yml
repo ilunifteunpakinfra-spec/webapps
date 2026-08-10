@@ -3,7 +3,8 @@
 # Deploy VitePress site + generate PDF ke GitHub Pages
 # ============================================
 # Trigger:
-#   - push ke branch `docs` (perubahan pada docs/ atau workflow)
+#   - push ke branch `docs` (perubahan pada docs/ atau workflow) → deploy GitHub Pages
+#   - pull_request ke `docs` → hanya build (preview check), tanpa deploy
 #   - manual via workflow_dispatch
 # Output:
 #   - Situs VitePress di-publish ke branch `gh-pages` (GitHub Pages)
@@ -11,6 +12,9 @@
 #   - PDF per halaman + manual-latest.pdf di docs/public/pdfs/
 #     (di-commit kembali ke branch docs dengan penanda [skip ci]
 #      agar tidak memicu workflow berulang)
+# Catatan:
+#   - Branch `docs` TIDAK di-deploy ke Vercel (lihat vercel.json ignoreCommand).
+#     Vercel hanya memproses production dari branch `main`.
 # ============================================
 name: Deploy Docs (VitePress + PDF)
 
@@ -20,6 +24,10 @@ on:
     paths:
       - 'docs/**'
       - '.github/workflows/deploy-docs.yml'
+  pull_request:
+    branches: [docs]
+    paths:
+      - 'docs/**'
   workflow_dispatch:
 
 permissions:
@@ -30,7 +38,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Preview check: jalankan build VitePress saja untuk setiap PR yang menyentuh
+  # docs/ tanpa mengubah branch gh-pages maupun commit PDF.
+  preview-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: docs/package-lock.json
+
+      - name: Install dependencies (docs)
+        working-directory: docs
+        run: npm ci
+
+      - name: Build VitePress site (preview check)
+        working-directory: docs
+        run: npm run build
+
   build-and-deploy:
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
