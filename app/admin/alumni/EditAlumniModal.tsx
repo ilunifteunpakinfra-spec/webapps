@@ -127,6 +127,46 @@ export default function EditAlumniModal({ row, onClose }: Props) {
             />
           </div>
 
+          <div>
+            <label className="label-mono mb-1 block">Instagram</label>
+            <input
+              name="instagram"
+              defaultValue={row.instagram ?? ''}
+              placeholder="https://instagram.com/..."
+              className="input-field"
+            />
+          </div>
+
+          <div>
+            <label className="label-mono mb-1 block">GitHub</label>
+            <input
+              name="github"
+              defaultValue={row.github ?? ''}
+              placeholder="https://github.com/..."
+              className="input-field"
+            />
+          </div>
+
+          <div>
+            <label className="label-mono mb-1 block">Facebook</label>
+            <input
+              name="facebook"
+              defaultValue={row.facebook ?? ''}
+              placeholder="https://facebook.com/..."
+              className="input-field"
+            />
+          </div>
+
+          <div>
+            <label className="label-mono mb-1 block">X (Twitter)</label>
+            <input
+              name="twitter"
+              defaultValue={row.twitter ?? ''}
+              placeholder="https://x.com/..."
+              className="input-field"
+            />
+          </div>
+
           <div className="md:col-span-2">
             <label className="label-mono mb-1 block">Bio Singkat</label>
             <textarea

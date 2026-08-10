@@ -57,7 +57,7 @@ export default async function AdminAlumniPage({
   let query = supabase
     .from('alumni')
     .select(
-      'id,nama,angkatan,tahun_lulus,pekerjaan,perusahaan,email,no_telepon,linkedin,bio_singkat,portofolio_url,contribution_score,status_open_to_work,status_verifikasi,visibilitas,created_at',
+      'id,nama,angkatan,tahun_lulus,pekerjaan,perusahaan,email,no_telepon,linkedin,instagram,github,facebook,twitter,bio_singkat,portofolio_url,contribution_score,status_open_to_work,status_verifikasi,visibilitas,created_at',
       { count: 'exact' }
     );
 

@@ -4,7 +4,6 @@ import {
   MapPin,
   Briefcase,
   Building2,
-  Link2,
   Globe,
   FileText,
   Award,
@@ -13,6 +12,13 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import ReportButton from '@/components/ReportButton';
+import {
+  LinkedInIcon,
+  InstagramIcon,
+  GitHubIcon,
+  FacebookIcon,
+  XIcon,
+} from '@/components/SocialIcons';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/user';
 import EndorseButton from './EndorseButton';
@@ -65,6 +71,17 @@ export default async function ProfilPage({
   const skills: AlumniSkillRow[] = (skillRows ?? []) as unknown as AlumniSkillRow[];
   const isOwner = user?.id === id;
   const isAuthed = Boolean(user);
+
+  const normalizeUrl = (value: string) =>
+    value.startsWith('http') ? value : `https://${value}`;
+
+  const socialLinks = [
+    { key: 'linkedin', label: 'LinkedIn', Icon: LinkedInIcon, url: alumni.linkedin },
+    { key: 'instagram', label: 'Instagram', Icon: InstagramIcon, url: alumni.instagram },
+    { key: 'github', label: 'GitHub', Icon: GitHubIcon, url: alumni.github },
+    { key: 'facebook', label: 'Facebook', Icon: FacebookIcon, url: alumni.facebook },
+    { key: 'twitter', label: 'X (Twitter)', Icon: XIcon, url: alumni.twitter },
+  ].filter((entry) => entry.url);
 
   return (
     <div className="min-h-screen bg-surface">
@@ -145,32 +162,25 @@ export default async function ProfilPage({
             </div>
 
             {/* Contact & Links */}
-            {(alumni.linkedin || alumni.portofolio_url || alumni.resume_url) && (
+            {(socialLinks.length > 0 || alumni.portofolio_url || alumni.resume_url) && (
               <div className="card">
                 <h3 className="label-mono mb-3">Kontak & Link</h3>
                 <div className="space-y-2 text-sm">
-                  {alumni.linkedin && (
+                  {socialLinks.map(({ key, label, Icon, url }) => (
                     <a
-                      href={
-                        alumni.linkedin.startsWith('http')
-                          ? alumni.linkedin
-                          : `https://${alumni.linkedin}`
-                      }
+                      key={key}
+                      href={normalizeUrl(url!)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-primary-container hover:underline"
                     >
-                      <Link2 className="h-4 w-4" />
-                      LinkedIn
+                      <Icon className="h-4 w-4 shrink-0" />
+                      {label}
                     </a>
-                  )}
+                  ))}
                   {alumni.portofolio_url && (
                     <a
-                      href={
-                        alumni.portofolio_url.startsWith('http')
-                          ? alumni.portofolio_url
-                          : `https://${alumni.portofolio_url}`
-                      }
+                      href={normalizeUrl(alumni.portofolio_url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-primary-container hover:underline"

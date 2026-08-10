@@ -17,6 +17,10 @@ export type AlumniRow = {
   no_telepon: string | null;
   foto_profil: string | null;
   linkedin: string | null;
+  instagram: string | null;
+  github: string | null;
+  facebook: string | null;
+  twitter: string | null;
   bio_singkat: string | null;
   portofolio_url: string | null;
   resume_url: string | null;
@@ -88,6 +92,10 @@ export type AlumniAdminRow = {
   email: string | null;
   no_telepon: string | null;
   linkedin: string | null;
+  instagram: string | null;
+  github: string | null;
+  facebook: string | null;
+  twitter: string | null;
   bio_singkat: string | null;
   portofolio_url: string | null;
   contribution_score: number | null;

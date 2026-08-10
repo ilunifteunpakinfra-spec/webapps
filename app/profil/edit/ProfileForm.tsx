@@ -412,6 +412,58 @@ export default function ProfileForm({
               />
             </div>
             <div>
+              <label className="label-mono mb-1 block" htmlFor="instagram">
+                Instagram
+              </label>
+              <input
+                id="instagram"
+                name="instagram"
+                type="url"
+                placeholder="https://instagram.com/..."
+                defaultValue={profile?.instagram ?? ''}
+                className="input-field"
+              />
+            </div>
+            <div>
+              <label className="label-mono mb-1 block" htmlFor="github">
+                GitHub
+              </label>
+              <input
+                id="github"
+                name="github"
+                type="url"
+                placeholder="https://github.com/..."
+                defaultValue={profile?.github ?? ''}
+                className="input-field"
+              />
+            </div>
+            <div>
+              <label className="label-mono mb-1 block" htmlFor="facebook">
+                Facebook
+              </label>
+              <input
+                id="facebook"
+                name="facebook"
+                type="url"
+                placeholder="https://facebook.com/..."
+                defaultValue={profile?.facebook ?? ''}
+                className="input-field"
+              />
+            </div>
+            <div>
+              <label className="label-mono mb-1 block" htmlFor="twitter">
+                X (Twitter)
+              </label>
+              <input
+                id="twitter"
+                name="twitter"
+                type="url"
+                placeholder="https://x.com/..."
+                defaultValue={profile?.twitter ?? ''}
+                className="input-field"
+              />
+            </div>
+            <div>
               <label className="label-mono mb-1 block" htmlFor="portofolio_url">
                 URL Portofolio
               </label>
