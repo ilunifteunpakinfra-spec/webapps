@@ -37,10 +37,10 @@ echo ""
 echo "📥 Pulling Vercel project configuration..."
 vercel pull --yes --token "$VERCEL_API_TOKEN" --environment=production --project="$VERCEL_PROJECT_ID" || true
 
-# Build the project
+# Build the project for Vercel (produces .vercel/output needed by --prebuilt)
 echo ""
-echo "🔨 Building project..."
-bun run build
+echo "🔨 Building project for Vercel..."
+vercel build --yes --token "$VERCEL_API_TOKEN" --prod --project="$VERCEL_PROJECT_ID"
 
 # Deploy to Vercel
 echo ""
@@ -51,7 +51,7 @@ echo ""
 echo "✅ Vercel deployment complete!"
 echo ""
 echo "🌐 Your app is live at:"
-echo "   https://$NEXT_PUBLIC_APP_URL"
+echo "   $NEXT_PUBLIC_APP_URL"
 echo ""
 echo "📊 View deployment at:"
-echo "   https://vercel.com/team/$vercel_team_id/$VERCEL_PROJECT_ID"
+echo "   https://vercel.com/team/$VERCEL_TEAM_ID/projects/$VERCEL_PROJECT_ID"

@@ -146,9 +146,38 @@ export async function POST(request: Request) {
   // Upsert by unique email so re-importing refreshes existing profiles.
   // `status_verifikasi` dan `created_at` dikelola database: baris baru otomatis
   // status_verifikasi=false dan created_at = tanggal & waktu import.
-  const { error } = await supabase
+  //
+  // Baris BARU wajib `visibilitas = 'public'` agar alumni hasil import langsung
+  // tampil di dashboard publik (sama seperti pendaftaran mandiri). Baris yang
+  // SUDAH ADA tidak disentuh `visibilitas`-nya — pilihan privasi pengguna
+  // (alumni_only/private) tetap dipertahankan saat re-import.
+  const emails = data.map((row) => row.email);
+  const { data: existingRows } = await supabase
     .from('alumni')
-    .upsert(data, { onConflict: 'email' });
+    .select('email')
+    .in('email', emails);
+  const existingEmails = new Set((existingRows ?? []).map((row) => row.email));
+
+  const newRows = data
+    .filter((row) => !existingEmails.has(row.email))
+    .map((row) => ({ ...row, visibilitas: 'public' as const }));
+  const updateRows = data.filter((row) => existingEmails.has(row.email));
+
+  let error: { message: string } | null = null;
+
+  if (newRows.length > 0) {
+    const { error: insertError } = await supabase
+      .from('alumni')
+      .upsert(newRows, { onConflict: 'email' });
+    error = insertError;
+  }
+
+  if (!error && updateRows.length > 0) {
+    const { error: updateError } = await supabase
+      .from('alumni')
+      .upsert(updateRows, { onConflict: 'email' });
+    error = updateError;
+  }
 
   if (error) {
     return NextResponse.json({ error: `Gagal menyimpan: ${error.message}` }, { status: 500 });

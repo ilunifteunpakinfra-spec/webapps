@@ -1,10 +1,12 @@
 import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
+import Breadcrumbs from '@/components/Breadcrumbs';
 import AdminNav from '@/components/admin/AdminNav';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser, isSuperAdmin } from '@/lib/supabase/user';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Log Aktivitas Admin - ILUNI FT ELEKTRO UNPAK',
 };
 
@@ -31,6 +33,8 @@ export default async function AdminAuditPage() {
       <Navbar />
 
       <div className="mx-auto max-w-[1280px] px-5 py-8 md:px-8">
+        <Breadcrumbs items={[{ label: 'Admin', href: '/admin' }, { label: 'Audit' }]} />
+
         <div className="mb-6">
           <h1 className="hero-title mb-2">Log Aktivitas Admin</h1>
           <p className="text-on-surface-variant">

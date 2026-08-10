@@ -1,7 +1,10 @@
 import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
 import { Search } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import Breadcrumbs from '@/components/Breadcrumbs';
 import AdminNav from '@/components/admin/AdminNav';
+import PageSizeSelect from '@/components/PageSizeSelect';
 import { createClient } from '@/lib/supabase/server';
 import {
   getCurrentUser,
@@ -12,11 +15,12 @@ import {
 import AlumniTable from './AlumniTable';
 import type { AlumniAdminRow } from '@/lib/types';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Manajemen Alumni - ILUNI FT ELEKTRO UNPAK',
 };
 
-const PAGE_SIZE = 20;
+const PAGE_SIZES = [10, 20, 30, 40, 50] as const;
+const DEFAULT_PAGE_SIZE = 10;
 
 function paginationRange(totalPages: number, current: number): (number | '…')[] {
   if (totalPages <= 7) {
@@ -39,18 +43,22 @@ function paginationRange(totalPages: number, current: number): (number | '…')[
 export default async function AdminAlumniPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string; size?: string }>;
 }) {
   const user = await getCurrentUser();
   if (!user || !isAdminUser(user) || !hasCapability(user, 'manage_alumni')) {
     redirect('/admin');
   }
 
-  const { q, page } = await searchParams;
+  const { q, page, size } = await searchParams;
   const search = (q ?? '').trim();
+  const rawSize = Number(size);
+  const pageSize = PAGE_SIZES.includes(rawSize as (typeof PAGE_SIZES)[number])
+    ? rawSize
+    : DEFAULT_PAGE_SIZE;
   const currentPage = Math.max(1, Number(page) || 1);
-  const from = (currentPage - 1) * PAGE_SIZE;
-  const to = from + PAGE_SIZE - 1;
+  const from = (currentPage - 1) * pageSize;
+  const to = from + pageSize - 1;
 
   const supabase = await createClient();
 
@@ -73,7 +81,7 @@ export default async function AdminAlumniPage({
     .range(from, to);
 
   const total = count ?? 0;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const rows = (data ?? []) as unknown as AlumniAdminRow[];
 
   return (
@@ -81,6 +89,8 @@ export default async function AdminAlumniPage({
       <Navbar />
 
       <div className="mx-auto max-w-[1280px] px-5 py-8 md:px-8">
+        <Breadcrumbs items={[{ label: 'Admin', href: '/admin' }, { label: 'Alumni' }]} />
+
         <div className="mb-6">
           <h1 className="hero-title mb-2">Manajemen Alumni</h1>
           <p className="text-on-surface-variant">
@@ -113,14 +123,26 @@ export default async function AdminAlumniPage({
           </button>
         </form>
 
+        {/* Page size selector */}
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <PageSizeSelect
+            id="alumni-size"
+            action="/admin/alumni"
+            pageSize={pageSize}
+            sizes={PAGE_SIZES}
+            hidden={search ? [['q', search]] : undefined}
+          />
+          <span className="text-xs text-on-surface-variant">{total} alumni ditemukan</span>
+        </div>
+
         <AlumniTable rows={rows} selfId={user.id} search={search} />
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <nav className="mt-4 flex items-center justify-center gap-1">
+          <nav className="mt-4 flex items-center justify-center gap-1" aria-label="Paginasi alumni">
             <a
               href={`/admin/alumni?${new URLSearchParams(
-                search ? { q: search, page: String(currentPage - 1) } : { page: String(currentPage - 1) }
+                search ? { q: search, page: String(currentPage - 1), size: String(pageSize) } : { page: String(currentPage - 1), size: String(pageSize) }
               )}`}
               aria-disabled={currentPage <= 1}
               className={`chip ${currentPage <= 1 ? 'pointer-events-none opacity-40' : ''}`}
@@ -136,7 +158,7 @@ export default async function AdminAlumniPage({
                 <a
                   key={p}
                   href={`/admin/alumni?${new URLSearchParams(
-                    search ? { q: search, page: String(p) } : { page: String(p) }
+                    search ? { q: search, page: String(p), size: String(pageSize) } : { page: String(p), size: String(pageSize) }
                   )}`}
                   className={`chip ${p === currentPage ? 'chip-active' : ''}`}
                 >
@@ -146,7 +168,7 @@ export default async function AdminAlumniPage({
             )}
             <a
               href={`/admin/alumni?${new URLSearchParams(
-                search ? { q: search, page: String(currentPage + 1) } : { page: String(currentPage + 1) }
+                search ? { q: search, page: String(currentPage + 1), size: String(pageSize) } : { page: String(currentPage + 1), size: String(pageSize) }
               )}`}
               aria-disabled={currentPage >= totalPages}
               className={`chip ${currentPage >= totalPages ? 'pointer-events-none opacity-40' : ''}`}
@@ -155,9 +177,6 @@ export default async function AdminAlumniPage({
             </a>
           </nav>
         )}
-        <p className="mt-3 text-center text-xs text-on-surface-variant">
-          {total} alumni ditemukan
-        </p>
       </div>
     </div>
   );

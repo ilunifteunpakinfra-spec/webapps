@@ -1,13 +1,15 @@
 import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
 import { Search } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import Breadcrumbs from '@/components/Breadcrumbs';
 import AdminNav from '@/components/admin/AdminNav';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser, isSuperAdmin } from '@/lib/supabase/user';
 import UserActions from './UserActions';
 import type { AdminUserRow } from '@/lib/types';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Manajemen Pengguna - ILUNI FT ELEKTRO UNPAK',
 };
 
@@ -46,6 +48,8 @@ export default async function AdminUsersPage({
       <Navbar />
 
       <div className="mx-auto max-w-[1280px] px-5 py-8 md:px-8">
+        <Breadcrumbs items={[{ label: 'Admin', href: '/admin' }, { label: 'Pengguna' }]} />
+
         <div className="mb-6">
           <h1 className="hero-title mb-2">Manajemen Pengguna</h1>
           <p className="text-on-surface-variant">

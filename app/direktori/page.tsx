@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import Breadcrumbs from '@/components/Breadcrumbs';
 import { createClient } from '@/lib/supabase/server';
 import { DIRECTORY_PAGE_SIZE } from '@/lib/constants';
 import { asString } from '@/lib/utils';
@@ -38,15 +39,22 @@ export default async function DirektoriPage({
 
   const supabase = await createClient();
 
-  // Load filter options in parallel with the alumni query.
-  const [{ data: angkatanRows }, { data: skillRows }] = await Promise.all([
-    supabase
-      .from('alumni')
-      .select('angkatan')
-      .not('angkatan', 'is', null)
-      .order('angkatan', { ascending: false }),
-    supabase.from('skills').select('id, nama_skill').order('nama_skill'),
-  ]);
+  // Load filter options + total registered count in parallel with the alumni query.
+  // RLS hides alumni_only/private rows from anonymous visitors, so the visible
+  // count only includes public profiles; count_alumni_total() (SECURITY DEFINER)
+  // returns just the aggregate total without exposing hidden rows.
+  const [{ data: angkatanRows }, { data: skillRows }, totalCountResult] =
+    await Promise.all([
+      supabase
+        .from('alumni')
+        .select('angkatan')
+        .not('angkatan', 'is', null)
+        .order('angkatan', { ascending: false }),
+      supabase.from('skills').select('id, nama_skill').order('nama_skill'),
+      supabase.rpc('count_alumni_total'),
+    ]);
+
+  const totalAlumni = Number(totalCountResult.data ?? 0);
 
   const angkatanOptions = Array.from(
     new Set((angkatanRows ?? []).map((row) => row.angkatan).filter(Boolean))
@@ -110,6 +118,8 @@ export default async function DirektoriPage({
       <Navbar />
 
       <div className="mx-auto max-w-[1280px] px-5 py-8 md:px-8">
+        <Breadcrumbs items={[{ label: 'Direktori' }]} />
+
         <div className="mb-6">
           <h1 className="hero-title mb-2">Direktori Alumni</h1>
           <p className="text-on-surface-variant">
@@ -189,7 +199,8 @@ export default async function DirektoriPage({
 
         {/* Results count */}
         <p className="mb-4 text-sm text-on-surface-variant">
-          {count ?? 0} alumni ditemukan
+          {(count ?? 0).toLocaleString('id-ID')} profil alumni publik dari{' '}
+          {totalAlumni.toLocaleString('id-ID')} alumni terdaftar
         </p>
 
         {/* Alumni Grid */}

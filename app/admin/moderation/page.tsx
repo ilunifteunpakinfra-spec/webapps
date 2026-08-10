@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import {
   BarChart3,
@@ -12,6 +13,7 @@ import {
   Users,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import Breadcrumbs from '@/components/Breadcrumbs';
 import AdminNav from '@/components/admin/AdminNav';
 import { createClient } from '@/lib/supabase/server';
 import {
@@ -24,7 +26,7 @@ import ReportActions from './ReportActions';
 import ContentActions from './ContentActions';
 import SkillActions from './SkillActions';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Moderasi Konten - ILUNI FT ELEKTRO UNPAK',
 };
 
@@ -151,6 +153,8 @@ export default async function AdminModerationPage({
       <Navbar />
 
       <div className="mx-auto max-w-[1280px] px-5 py-8 md:px-8">
+        <Breadcrumbs items={[{ label: 'Admin', href: '/admin' }, { label: 'Moderasi' }]} />
+
         <div className="mb-6">
           <h1 className="hero-title mb-2">Moderasi Konten</h1>
           <p className="text-on-surface-variant">

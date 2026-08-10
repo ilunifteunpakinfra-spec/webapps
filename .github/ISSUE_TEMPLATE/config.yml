@@ -3,9 +3,7 @@ contact_links:
   - name: 📖 User Manual
     url: https://ilunifteunpakinfra-spec.github.io/webapps/
     about: Baca panduan penggunaan aplikasi (VitePress + PDF)
-  - name: 📧 Kontak Pengelola
-    url: mailto:iluni.fte.unpak.infra@gmail.com
-    about: Untuk pertanyaan umum, kolaborasi, atau masalah non-teknis
+
   - name: 🔒 Laporan Keamanan
     url: https://github.com/ilunifteunpakinfra-spec/webapps/security/advisories
     about: Laporkan kerentanan keamanan secara rahasia (jangan buat issue publik)
