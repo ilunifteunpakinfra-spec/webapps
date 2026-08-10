@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Flag,
   Images,
+  Lightbulb,
   Megaphone,
   ShieldCheck,
   Users,
@@ -21,6 +22,7 @@ import {
 } from '@/lib/supabase/user';
 import ReportActions from './ReportActions';
 import ContentActions from './ContentActions';
+import SkillActions from './SkillActions';
 
 export const metadata = {
   title: 'Moderasi Konten - ILUNI FT ELEKTRO UNPAK',
@@ -51,6 +53,14 @@ type AnnouncementRow = { id: string; judul: string; status: string; created_at: 
 type PollRow = { id: string; judul: string; expired_at: string | null; created_at: string | null };
 type GroupRow = { id: string; nama: string; tipe: string | null; created_at: string | null };
 type GalleryRow = { id: string; caption: string | null; foto_url: string | null; created_at: string | null };
+type SkillRow = {
+  id: string;
+  nama_skill: string;
+  kategori: string | null;
+  status: string;
+  created_at: string | null;
+  alumni: { nama: string } | null;
+};
 
 function formatDate(iso: string | null): string {
   if (!iso) return '-';
@@ -77,6 +87,7 @@ export default async function AdminModerationPage({
     pollQuery,
     groupQuery,
     galleryQuery,
+    skillQuery,
   ] = await Promise.all([
     supabase
       .from('content_reports')
@@ -109,6 +120,12 @@ export default async function AdminModerationPage({
       .select('id, caption, foto_url, created_at')
       .order('created_at', { ascending: false })
       .limit(20),
+    supabase
+      .from('skills')
+      .select('id, nama_skill, kategori, status, created_at, requested_by, alumni!skills_requested_by_fkey(nama)')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(50),
   ]);
 
   const caps = {
@@ -117,6 +134,7 @@ export default async function AdminModerationPage({
     polls: hasCapability(user, 'moderate_polls'),
     groups: hasCapability(user, 'moderate_groups'),
     gallery: hasCapability(user, 'moderate_gallery'),
+    skills: hasCapability(user, 'moderate_skills'),
     reports: hasCapability(user, 'moderate_reports'),
   };
 
@@ -126,6 +144,7 @@ export default async function AdminModerationPage({
   const polls = (pollQuery.data ?? []) as PollRow[];
   const groups = (groupQuery.data ?? []) as GroupRow[];
   const photos = (galleryQuery.data ?? []) as GalleryRow[];
+  const pendingSkills = (skillQuery.data ?? []) as unknown as SkillRow[];
 
   return (
     <div className="min-h-screen bg-surface">
@@ -443,6 +462,54 @@ export default async function AdminModerationPage({
                 </table>
               ) : (
                 <p className="text-sm text-on-surface-variant">Belum ada foto.</p>
+              )}
+            </div>
+
+            {/* Skill requests (moderation queue) */}
+            <div className="card overflow-x-auto">
+              <h2 className="section-title mb-1 flex items-center gap-2">
+                <Lightbulb className="h-5 w-5 text-primary-container" />
+                Keahlian Baru
+              </h2>
+              <p className="mb-3 text-sm text-on-surface-variant">
+                Alumni mengusulkan nama keahlian baru (teks bebas). Setujui agar
+                muncul di profil dan direktori, atau tolak usulannya.
+              </p>
+              {pendingSkills.length > 0 ? (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-outline-variant text-left">
+                      <th className="pb-2 font-mono text-xs uppercase tracking-wider">Nama Keahlian</th>
+                      <th className="pb-2 font-mono text-xs uppercase tracking-wider">Kategori</th>
+                      <th className="pb-2 font-mono text-xs uppercase tracking-wider">Diajukan Oleh</th>
+                      <th className="pb-2 font-mono text-xs uppercase tracking-wider">Tanggal</th>
+                      <th className="pb-2 font-mono text-xs uppercase tracking-wider">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingSkills.map((skill) => (
+                      <tr key={skill.id} className="border-b border-outline-variant">
+                        <td className="py-3 font-medium">{skill.nama_skill}</td>
+                        <td className="py-3">
+                          <span className="chip">{skill.kategori ?? 'umum'}</span>
+                        </td>
+                        <td className="py-3 text-on-surface-variant">
+                          {skill.alumni?.nama ?? 'Alumni'}
+                        </td>
+                        <td className="py-3 text-on-surface-variant">
+                          {formatDate(skill.created_at)}
+                        </td>
+                        <td className="py-3">
+                          <SkillActions skillId={skill.id} canModerate={caps.skills} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className="text-sm text-on-surface-variant">
+                  Tidak ada permintaan keahlian baru.
+                </p>
               )}
             </div>
           </div>

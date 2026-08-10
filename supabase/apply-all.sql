@@ -101,10 +101,19 @@ CREATE TABLE alumni (
 );
 
 -- 2.2 Skills
+-- status: approved = published, pending = waiting for admin moderation,
+-- rejected = denied by an admin. Only approved skills are visible publicly.
+-- requested_by/requested_level: free-text requests; on approval the skill is
+-- attached to the requester's profile with the level they chose.
 CREATE TABLE skills (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nama_skill TEXT NOT NULL,
-  kategori TEXT CHECK (kategori IN ('hard', 'soft'))
+  kategori TEXT CHECK (kategori IN ('hard', 'soft')),
+  status TEXT NOT NULL DEFAULT 'approved'
+    CHECK (status IN ('approved', 'pending', 'rejected')),
+  requested_by UUID REFERENCES alumni(id) ON DELETE SET NULL,
+  requested_level INT CHECK (requested_level BETWEEN 1 AND 5),
+  created_at TIMESTAMPTZ DEFAULT now()
 );
 
 -- 2.3 Alumni Skills
@@ -355,13 +364,20 @@ CREATE POLICY "owner_insert_own_profile"
 -- ============================================
 -- 5.2 SKILLS POLICIES
 -- ============================================
+-- Public can only see approved skills (directory filter, profile dropdown).
 CREATE POLICY "public_read_skills"
   ON skills FOR SELECT
-  USING (true);
+  USING (status = 'approved');
 
+-- Authenticated users may only submit NEW pending requests for themselves.
+-- Approving/rejecting is an admin action (existing admin_bypass_skills).
 CREATE POLICY "auth_insert_skills"
   ON skills FOR INSERT
-  WITH CHECK (auth.role() = 'authenticated');
+  WITH CHECK (
+    auth.role() = 'authenticated'
+    AND status = 'pending'
+    AND requested_by = auth.uid()
+  );
 
 -- ============================================
 -- 5.3 ALUMNI SKILLS POLICIES
@@ -784,7 +800,8 @@ DECLARE
   valid_caps TEXT[] := ARRAY[
     'manage_users', 'manage_alumni', 'moderate_jobs',
     'moderate_announcements', 'moderate_polls', 'moderate_groups',
-    'moderate_gallery', 'moderate_reports', 'view_audit', 'import_export'
+    'moderate_gallery', 'moderate_reports', 'view_audit', 'import_export',
+    'moderate_skills'
   ];
   effective_caps TEXT[];
 BEGIN
@@ -819,6 +836,125 @@ BEGIN
       || jsonb_build_object('role', new_role, 'capabilities', to_jsonb(effective_caps))
   WHERE id = target_uid;
   RETURN FOUND;
+END;
+$$;
+
+-- Free-text skill request flow (moderation). SECURITY DEFINER with empty
+-- search_path; authenticated only (see GRANT section below). Returns a
+-- JSONB { ok, message, action } result.
+CREATE OR REPLACE FUNCTION public.request_skill(
+  p_nama TEXT,
+  p_kategori TEXT,
+  p_level INT DEFAULT 3
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_nama TEXT;
+  v_skill_id UUID;
+  v_status TEXT;
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RETURN jsonb_build_object('ok', false, 'message', 'Silakan masuk terlebih dahulu.');
+  END IF;
+
+  v_nama := trim(regexp_replace(p_nama, '\s+', ' ', 'g'));
+  IF char_length(v_nama) < 2 OR char_length(v_nama) > 60 THEN
+    RETURN jsonb_build_object('ok', false, 'message', 'Nama keahlian harus 2-60 karakter.');
+  END IF;
+  IF p_kategori NOT IN ('hard', 'soft') THEN
+    RETURN jsonb_build_object('ok', false, 'message', 'Kategori keahlian tidak valid.');
+  END IF;
+  IF p_level < 1 OR p_level > 5 THEN
+    RETURN jsonb_build_object('ok', false, 'message', 'Level keahlian harus antara 1 dan 5.');
+  END IF;
+
+  SELECT id, status INTO v_skill_id, v_status
+  FROM public.skills
+  WHERE nama_skill ILIKE v_nama
+  ORDER BY CASE status WHEN 'approved' THEN 0 WHEN 'pending' THEN 1 ELSE 2 END
+  LIMIT 1;
+
+  -- New skill request (pending moderation).
+  IF v_skill_id IS NULL THEN
+    INSERT INTO public.skills (nama_skill, kategori, status, requested_by, requested_level)
+    VALUES (v_nama, p_kategori, 'pending', auth.uid(), p_level)
+    RETURNING id INTO v_skill_id;
+    RETURN jsonb_build_object(
+      'ok', true, 'action', 'pending',
+      'message', 'Permintaan keahlian dikirim dan sedang menunggu moderasi admin.'
+    );
+  END IF;
+
+  IF v_status = 'pending' THEN
+    -- Refresh the requester's intended level so approval attaches with it.
+    UPDATE public.skills
+       SET requested_level = p_level
+     WHERE id = v_skill_id
+       AND requested_by = auth.uid();
+    RETURN jsonb_build_object(
+      'ok', true, 'action', 'pending',
+      'message', 'Keahlian ini sudah diajukan dan sedang menunggu moderasi admin.'
+    );
+  END IF;
+
+  IF v_status = 'rejected' THEN
+    RETURN jsonb_build_object(
+      'ok', false, 'action', 'rejected',
+      'message', 'Nama keahlian ini sebelumnya ditolak admin. Gunakan nama lain.'
+    );
+  END IF;
+
+  -- Approved: attach to the caller's profile with the chosen level.
+  INSERT INTO public.alumni_skills (alumni_id, skill_id, level)
+  VALUES (auth.uid(), v_skill_id, p_level)
+  ON CONFLICT (alumni_id, skill_id) DO UPDATE SET level = EXCLUDED.level;
+  RETURN jsonb_build_object(
+    'ok', true, 'action', 'rated',
+    'message', 'Keahlian ditambahkan ke profil Anda.'
+  );
+END;
+$$;
+
+-- Approve a pending skill request and, when a requester exists, attach it to
+-- their profile with the level they chose at submission (default 3).
+-- SECURITY DEFINER with empty search_path; capability-gated and callable by
+-- authenticated only (see GRANT section below).
+CREATE OR REPLACE FUNCTION public.admin_approve_skill(p_skill_id UUID)
+RETURNS JSONB
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+  v_requester UUID;
+  v_level INT;
+BEGIN
+  IF NOT public.has_admin_capability('moderate_skills') THEN
+    RETURN jsonb_build_object('ok', false, 'message', 'Aksi ini hanya untuk admin dengan kemampuan terkait.');
+  END IF;
+
+  SELECT requested_by, COALESCE(requested_level, 3)
+    INTO v_requester, v_level
+  FROM public.skills WHERE id = p_skill_id;
+  IF NOT FOUND THEN
+    RETURN jsonb_build_object('ok', false, 'message', 'Keahlian tidak ditemukan.');
+  END IF;
+
+  UPDATE public.skills
+     SET status = 'approved'
+   WHERE id = p_skill_id;
+
+  IF v_requester IS NOT NULL THEN
+    INSERT INTO public.alumni_skills (alumni_id, skill_id, level)
+    VALUES (v_requester, p_skill_id, v_level)
+    ON CONFLICT (alumni_id, skill_id) DO UPDATE SET level = EXCLUDED.level;
+  END IF;
+
+  RETURN jsonb_build_object('ok', true, 'message', 'Keahlian disetujui dan muncul untuk semua alumni.');
 END;
 $$;
 
@@ -995,6 +1131,12 @@ GRANT EXECUTE ON FUNCTION public.has_admin_capability(TEXT) TO authenticated;
 
 REVOKE EXECUTE ON FUNCTION public.admin_set_role(UUID, TEXT, TEXT[]) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_set_role(UUID, TEXT, TEXT[]) TO authenticated;
+
+REVOKE EXECUTE ON FUNCTION public.request_skill(TEXT, TEXT, INT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.request_skill(TEXT, TEXT, INT) TO authenticated;
+
+REVOKE EXECUTE ON FUNCTION public.admin_approve_skill(UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.admin_approve_skill(UUID) TO authenticated;
 
 REVOKE EXECUTE ON FUNCTION public.admin_ban_user(UUID, TIMESTAMPTZ) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_ban_user(UUID, TIMESTAMPTZ) TO authenticated;

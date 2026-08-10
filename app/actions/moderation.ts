@@ -264,6 +264,65 @@ export async function deleteGalleryPhotoAction(
 }
 
 // ------------------------------------------------------------------
+// Skills (moderation queue) — capability: moderate_skills
+// ------------------------------------------------------------------
+// Free-text skill requests are created as `pending` by authenticated users;
+// an admin approves (publishes) or rejects them here. Approving publishes the
+// skill AND attaches it to the requester's profile via the admin_approve_skill
+// RPC (SECURITY DEFINER), so it appears on their profile immediately.
+
+export async function approveSkillAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const denied = await requireCapability('moderate_skills');
+  if (denied) return denied;
+
+  const skillId = readId(formData, 'skill_id');
+  if (!skillId) return { error: 'Data keahlian tidak valid.' };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc('admin_approve_skill', {
+    p_skill_id: skillId,
+  });
+  if (error) return { error: error.message };
+
+  const result = (data ?? {}) as { ok?: boolean; message?: string };
+  if (result.ok === false) {
+    return { error: result.message ?? 'Gagal menyetujui keahlian.' };
+  }
+
+  await logActivity(supabase, 'approve_skill', 'skills', skillId);
+  revalidatePath('/admin/moderation');
+  revalidatePath('/profil/edit');
+  revalidatePath('/direktori');
+  return { success: true, message: result.message ?? 'Keahlian disetujui.' };
+}
+
+export async function rejectSkillAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const denied = await requireCapability('moderate_skills');
+  if (denied) return denied;
+
+  const skillId = readId(formData, 'skill_id');
+  if (!skillId) return { error: 'Data keahlian tidak valid.' };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from('skills')
+    .update({ status: 'rejected' })
+    .eq('id', skillId);
+
+  if (error) return { error: error.message };
+
+  await logActivity(supabase, 'reject_skill', 'skills', skillId);
+  revalidatePath('/admin/moderation');
+  return { success: true, message: 'Permintaan keahlian ditolak.' };
+}
+
+// ------------------------------------------------------------------
 // Endorsements & self-ratings (admin override) — capability: manage_alumni
 // ------------------------------------------------------------------
 

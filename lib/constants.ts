@@ -46,6 +46,7 @@ export const ADMIN_CAPABILITIES = [
   'moderate_polls', // delete/close polls
   'moderate_groups', // delete groups / remove members
   'moderate_gallery', // delete gallery photos (incl. storage object)
+  'moderate_skills', // approve/reject free-text skill requests
   'moderate_reports', // resolve/dismiss community reports
   'view_audit', // read admin activity log
   'import_export', // CSV import/export

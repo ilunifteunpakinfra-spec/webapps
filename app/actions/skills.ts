@@ -40,6 +40,49 @@ export async function rateSkillAction(
   return { success: true };
 }
 
+/**
+ * Free-text skill request. Delegates to the `request_skill` RPC which
+ * deduplicates against approved/pending/rejected skills and, for approved
+ * matches, rates the skill directly on the caller's profile.
+ */
+export async function requestSkillAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: 'Silakan masuk terlebih dahulu.' };
+
+  const nama = String(formData.get('nama_skill') ?? '').trim();
+  const kategori = String(formData.get('kategori') ?? '');
+  const level = Number(formData.get('level') ?? 3);
+
+  if (!nama) return { error: 'Tulis nama keahlian terlebih dahulu.' };
+  if (kategori !== 'hard' && kategori !== 'soft') {
+    return { error: 'Kategori keahlian tidak valid.' };
+  }
+  if (!Number.isInteger(level) || level < 1 || level > 5) {
+    return { error: 'Level keahlian harus antara 1 dan 5.' };
+  }
+
+  const { data, error } = await supabase.rpc('request_skill', {
+    p_nama: nama,
+    p_kategori: kategori,
+    p_level: level,
+  });
+  if (error) return { error: error.message };
+
+  const result = (data ?? {}) as { ok?: boolean; message?: string };
+  if (result.ok === false) {
+    return { error: result.message ?? 'Gagal memproses permintaan keahlian.' };
+  }
+
+  revalidatePath('/profil/edit');
+  return { success: true, message: result.message ?? 'Permintaan keahlian dikirim.' };
+}
+
 /** Remove a skill from the user's own profile. */
 export async function removeSkillAction(
   _prevState: ActionState,

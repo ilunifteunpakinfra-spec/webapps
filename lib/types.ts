@@ -33,6 +33,9 @@ export type SkillRow = {
   id: string;
   nama_skill: string;
   kategori: 'hard' | 'soft' | null;
+  status?: 'approved' | 'pending' | 'rejected' | null;
+  requested_by?: string | null;
+  created_at?: string | null;
 };
 
 /** Alumni skill entry joined with its skill definition. */

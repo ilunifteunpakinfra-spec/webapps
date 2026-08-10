@@ -21,7 +21,7 @@ import {
 } from '@/lib/constants';
 import { compressImage, validateResume } from '@/lib/utils/media';
 import { updateProfileAction, toggleOpenToWorkAction } from '@/app/actions/alumni';
-import { rateSkillAction, removeSkillAction } from '@/app/actions/skills';
+import { rateSkillAction, removeSkillAction, requestSkillAction } from '@/app/actions/skills';
 import type {
   ActionState,
   AlumniRow,
@@ -164,6 +164,16 @@ export default function ProfileForm({
     const formData = new FormData(event.currentTarget);
     startSkillTransition(async () => {
       const result = await rateSkillAction({ error: undefined }, formData);
+      setSkillState(result);
+      if (result.success) router.refresh();
+    });
+  }
+
+  function handleRequestSkill(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    startSkillTransition(async () => {
+      const result = await requestSkillAction({ error: undefined }, formData);
       setSkillState(result);
       if (result.success) router.refresh();
     });
@@ -491,6 +501,37 @@ export default function ProfileForm({
               Tambah
             </button>
           </form>
+
+          <form className="mb-4 flex flex-col gap-2 border-t border-outline-variant pt-4 sm:flex-row" onSubmit={handleRequestSkill}>
+            <input
+              name="nama_skill"
+              placeholder="Nama keahlian baru (teks bebas)..."
+              className="input-field sm:flex-1"
+              required
+              minLength={2}
+              maxLength={60}
+            />
+            <select name="kategori" className="input-field sm:w-44" defaultValue="hard">
+              <option value="hard">Teknis (Hard)</option>
+              <option value="soft">Non-teknis (Soft)</option>
+            </select>
+            <select name="level" className="input-field sm:w-28" defaultValue={3}>
+              {LEVEL_OPTIONS.map((level) => (
+                <option key={level} value={level}>
+                  Level {level}
+                </option>
+              ))}
+            </select>
+            <button type="submit" className="btn-secondary" disabled={isSkillPending}>
+              <Plus className="h-4 w-4" />
+              Ajukan
+            </button>
+          </form>
+          <p className="mb-4 text-xs text-on-surface-variant">
+            Keahlian baru dimoderasi admin terlebih dahulu sebelum muncul di
+            profil dan direktori. Jika nama sudah ada, keahlian langsung
+            ditambahkan ke profil Anda.
+          </p>
 
           {skillState.error && (
             <div className="mb-3 rounded border border-error-container bg-error-container/40 px-3 py-2 text-sm text-error-on-container">
