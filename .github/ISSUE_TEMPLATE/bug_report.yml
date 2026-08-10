@@ -1,0 +1,72 @@
+name: 🐛 Laporan Bug
+description: Laporkan bug atau perilaku yang tidak sesuai pada aplikasi
+title: "bug: "
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Terima kasih sudah melaporkan! Mohon isi informasi di bawah ini selengkap mungkin.
+        **Jangan** melampirkan kredensial, token, atau data pribadi sensitif.
+  - type: textarea
+    id: deskripsi
+    attributes:
+      label: Deskripsi Masalah
+      description: Jelaskan apa yang terjadi secara jelas dan ringkas.
+      placeholder: "Contoh: Setelah login, halaman beranda tidak menampilkan daftar alumni..."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduksi
+    attributes:
+      label: Langkah Reproduksi
+      description: Langkah-langkah untuk mereproduksi bug.
+      placeholder: |
+        1. Buka https://ilunifteunpak.vercel.app
+        2. Klik "Login" dan masuk dengan akun
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: ekspektasi
+    attributes:
+      label: Perilaku yang Diharapkan
+      description: Apa yang seharusnya terjadi?
+    validations:
+      required: true
+  - type: textarea
+    id: aktual
+    attributes:
+      label: Perilaku Aktual
+      description: Apa yang benar-benar terjadi? Sertakan pesan error jika ada.
+    validations:
+      required: true
+  - type: dropdown
+    id: peran
+    attributes:
+      label: Peran Pengguna
+      description: Peran yang digunakan saat bug terjadi.
+      options:
+        - Alumni (pengguna biasa)
+        - Admin
+        - Superadmin
+        - Pengunjung (tidak login)
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser & Versi
+      description: "Contoh: Chrome 126, Firefox 128, Safari 17"
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: Screenshot (opsional)
+      description: Seret & lepas screenshot atau log console di sini.
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Verifikasi
+      options:
+        - label: Saya sudah mencari di Issues yang ada dan tidak menemukan duplikat
+          required: true

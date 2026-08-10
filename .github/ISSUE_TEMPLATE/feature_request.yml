@@ -1,0 +1,46 @@
+name: ✨ Permintaan Fitur
+description: Ajukan ide atau fitur baru untuk platform
+title: "feat: "
+labels: [enhancement, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Terima kasih atas idenya! Jelaskan kebutuhan Anda dengan jelas agar tim dapat mengevaluasi.
+  - type: textarea
+    id: masalah
+    attributes:
+      label: Masalah / Kebutuhan
+      description: Masalah apa yang ingin Anda selesaikan dengan fitur ini?
+      placeholder: "Contoh: Alumni kesulitan mencari rekan satu angkatan..."
+    validations:
+      required: true
+  - type: textarea
+    id: solusi
+    attributes:
+      label: Solusi yang Diusulkan
+      description: Jelaskan fitur yang Anda bayangkan.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatif
+    attributes:
+      label: Alternatif yang Sudah Dicoba
+      description: Apakah ada solusi lain (termasuk workaround) yang sudah Anda coba?
+  - type: dropdown
+    id: prioritas
+    attributes:
+      label: Prioritas (menurut Anda)
+      options:
+        - Rendah (nice-to-have)
+        - Sedang (meningkatkan pengalaman)
+        - Tinggi (menghambat pekerjaan)
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Verifikasi
+      options:
+        - label: Saya sudah mencari di Issues yang ada dan tidak menemukan duplikat
+          required: true

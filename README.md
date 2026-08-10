@@ -322,15 +322,19 @@ App deployment:
 
 ## 🤝 Contributing
 
-1. Create a feature branch
-2. Make your changes
-3. Test locally with `bun dev`
-4. Run linter: `bun run lint`
-5. Commit and push
+Baca [CONTRIBUTING.md](CONTRIBUTING.md) untuk panduan lengkap (struktur branch, konvensi commit, standar kode, alur pull request). Setiap kontributor wajib mengikuti [Kode Etik](CODE_OF_CONDUCT.md).
+
+Ringkasan:
+
+1. Buat feature branch (`feat/`, `fix/`, `docs/`, `chore/`)
+2. Buat perubahan & tes lokal dengan `bun dev`
+3. Verifikasi: `bun run lint` + `npx tsc --noEmit` + `bun run build`
+4. Commit dengan [Conventional Commits](https://www.conventionalcommits.org/)
+5. Buka Pull Request (template otomatis) dan tunggu CI hijau
 
 ## 📄 License
 
-Private - ILUNI FT ELEKTRO UNPAK
+Proprietary — All Rights Reserved. © 2026 ILUNI FT ELEKTRO UNPAK. Lihat [LICENSE](LICENSE).
 
 ## 👥 Team
 
