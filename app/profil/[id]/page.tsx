@@ -4,7 +4,7 @@ import {
   MapPin,
   Briefcase,
   Building2,
-  Linkedin,
+  Link2,
   Globe,
   FileText,
   Award,
@@ -160,7 +160,7 @@ export default async function ProfilPage({
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 text-primary-container hover:underline"
                     >
-                      <Linkedin className="h-4 w-4" />
+                      <Link2 className="h-4 w-4" />
                       LinkedIn
                     </a>
                   )}
