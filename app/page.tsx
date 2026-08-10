@@ -25,7 +25,7 @@ export default async function Home() {
   const user = await getCurrentUser();
 
   // Real stats (RLS-aware: unauthenticated visitors only count public profiles).
-  const [alumniCount, jobsCount, mentorCount, citiesQuery, featuredQuery] =
+  const [alumniCount, jobsCount, mentorCount, citiesQuery, angkatanQuery, featuredQuery] =
     await Promise.all([
       supabase.from('alumni').select('id', { count: 'exact', head: true }),
       supabase
@@ -41,6 +41,7 @@ export default async function Home() {
         .from('alumni')
         .select('alamat_tinggal')
         .not('alamat_tinggal', 'is', null),
+      supabase.from('alumni').select('angkatan').not('angkatan', 'is', null),
       supabase
         .from('alumni')
         .select(
@@ -57,6 +58,18 @@ export default async function Home() {
         .filter((value): value is string => Boolean(value))
     )
   ).length;
+
+  // Semua angkatan, diurutkan naik (X = angkatan, Y = jumlah alumni).
+  const angkatanCounts = new Map<string, number>();
+  for (const row of angkatanQuery.data ?? []) {
+    if (!row.angkatan) continue;
+    angkatanCounts.set(row.angkatan, (angkatanCounts.get(row.angkatan) ?? 0) + 1);
+  }
+  const angkatanData = Array.from(angkatanCounts.entries())
+    .map(([angkatan, count]) => ({ angkatan, count }))
+    .sort((a, b) => a.angkatan.localeCompare(b.angkatan, undefined, { numeric: true }));
+  const maxAngkatan = Math.max(1, ...angkatanData.map((item) => item.count));
+  const BAR_AREA_HEIGHT = 96;
 
   const stats = [
     { icon: Users, label: 'Alumni Terdaftar', value: (alumniCount.count ?? 0).toLocaleString('id-ID') },
@@ -166,6 +179,70 @@ export default async function Home() {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Distribusi Angkatan */}
+      <section className="border-b border-tech-black bg-surface">
+        <div className="mx-auto max-w-[1280px] px-5 py-12 md:px-8">
+          <div className="mb-6 flex items-center justify-between gap-3">
+            <div>
+              <h2 className="section-title">Distribusi Angkatan</h2>
+              <p className="mt-1 text-sm text-on-surface-variant">
+                Sebaran alumni berdasarkan tahun angkatan
+              </p>
+            </div>
+            {angkatanData.length > 0 && (
+              <span className="label-mono">{angkatanData.length} angkatan</span>
+            )}
+          </div>
+
+          <div className="card overflow-x-auto pb-1">
+            {angkatanData.length > 0 ? (
+              <>
+                <div
+                  role="img"
+                  aria-label="Grafik jumlah alumni per angkatan"
+                  className="flex items-end gap-2 pt-5"
+                >
+                  {angkatanData.map((item) => {
+                    const barHeight = Math.max(
+                      2,
+                      Math.round((item.count / maxAngkatan) * BAR_AREA_HEIGHT)
+                    );
+                    return (
+                      <div
+                        key={item.angkatan}
+                        className="flex min-w-[40px] flex-col items-center gap-1"
+                      >
+                        <div
+                          className="flex w-full items-end justify-center"
+                          style={{ height: `${BAR_AREA_HEIGHT}px` }}
+                        >
+                          <div
+                            className="relative w-6 rounded-t bg-primary-container transition-colors hover:bg-circuit-yellow"
+                            style={{ height: `${barHeight}px` }}
+                            title={`Angkatan ${item.angkatan}: ${item.count} alumni`}
+                            aria-label={`Angkatan ${item.angkatan}: ${item.count} alumni`}
+                          >
+                            <span className="absolute -top-4 left-1/2 -translate-x-1/2 font-mono text-[10px] text-on-surface-variant">
+                              {item.count}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="whitespace-nowrap font-mono text-[10px] text-on-surface-variant">
+                          {item.angkatan}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="label-mono mt-2">X: angkatan · Y: jumlah alumni</p>
+              </>
+            ) : (
+              <p className="text-sm text-on-surface-variant">Belum ada data angkatan.</p>
+            )}
+          </div>
         </div>
       </section>
 

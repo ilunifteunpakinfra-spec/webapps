@@ -78,7 +78,7 @@ export default async function AdminModerationPage({
   if (!isAdminUser(user)) redirect('/');
 
   const { tab } = await searchParams;
-  const showContent = tab === 'konten';
+  const activeTab = tab === 'konten' || tab === 'keahlian' ? tab : 'laporan';
 
   const supabase = await createClient();
 
@@ -171,21 +171,28 @@ export default async function AdminModerationPage({
         <div className="mt-6 flex gap-2">
           <Link
             href="/admin/moderation"
-            className={!showContent ? 'chip-active' : 'chip'}
+            className={activeTab === 'laporan' ? 'chip-active' : 'chip'}
           >
             <Flag className="h-3.5 w-3.5" />
             Laporan ({reports.length})
           </Link>
           <Link
             href="/admin/moderation?tab=konten"
-            className={showContent ? 'chip-active' : 'chip'}
+            className={activeTab === 'konten' ? 'chip-active' : 'chip'}
           >
             <ShieldCheck className="h-3.5 w-3.5" />
             Konten
           </Link>
+          <Link
+            href="/admin/moderation?tab=keahlian"
+            className={activeTab === 'keahlian' ? 'chip-active' : 'chip'}
+          >
+            <Lightbulb className="h-3.5 w-3.5" />
+            Keahlian ({pendingSkills.length})
+          </Link>
         </div>
 
-        {!showContent ? (
+        {activeTab === 'laporan' && (
           /* ---------------- LAPORAN TAB ---------------- */
           <div className="card mt-4 overflow-x-auto">
             <h2 className="section-title mb-4">Laporan Masuk</h2>
@@ -234,7 +241,9 @@ export default async function AdminModerationPage({
               </div>
             )}
           </div>
-        ) : (
+        )}
+
+        {activeTab === 'konten' && (
           /* ---------------- KONTEN TAB ---------------- */
           <div className="mt-4 space-y-6">
             {/* Jobs */}
@@ -469,53 +478,56 @@ export default async function AdminModerationPage({
               )}
             </div>
 
-            {/* Skill requests (moderation queue) */}
-            <div className="card overflow-x-auto">
-              <h2 className="section-title mb-1 flex items-center gap-2">
-                <Lightbulb className="h-5 w-5 text-primary-container" />
-                Keahlian Baru
-              </h2>
-              <p className="mb-3 text-sm text-on-surface-variant">
-                Alumni mengusulkan nama keahlian baru (teks bebas). Setujui agar
-                muncul di profil dan direktori, atau tolak usulannya.
-              </p>
-              {pendingSkills.length > 0 ? (
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-outline-variant text-left">
-                      <th className="pb-2 font-mono text-xs uppercase tracking-wider">Nama Keahlian</th>
-                      <th className="pb-2 font-mono text-xs uppercase tracking-wider">Kategori</th>
-                      <th className="pb-2 font-mono text-xs uppercase tracking-wider">Diajukan Oleh</th>
-                      <th className="pb-2 font-mono text-xs uppercase tracking-wider">Tanggal</th>
-                      <th className="pb-2 font-mono text-xs uppercase tracking-wider">Aksi</th>
+          </div>
+        )}
+
+        {activeTab === 'keahlian' && (
+          /* ---------------- KEAHLIAN TAB ---------------- */
+          <div className="card mt-4 overflow-x-auto">
+            <h2 className="section-title mb-1 flex items-center gap-2">
+              <Lightbulb className="h-5 w-5 text-primary-container" />
+              Keahlian Baru
+            </h2>
+            <p className="mb-3 text-sm text-on-surface-variant">
+              Alumni mengusulkan nama keahlian baru (teks bebas). Setujui agar
+              muncul di profil dan direktori, atau tolak usulannya.
+            </p>
+            {pendingSkills.length > 0 ? (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-outline-variant text-left">
+                    <th className="pb-2 font-mono text-xs uppercase tracking-wider">Nama Keahlian</th>
+                    <th className="pb-2 font-mono text-xs uppercase tracking-wider">Kategori</th>
+                    <th className="pb-2 font-mono text-xs uppercase tracking-wider">Diajukan Oleh</th>
+                    <th className="pb-2 font-mono text-xs uppercase tracking-wider">Tanggal</th>
+                    <th className="pb-2 font-mono text-xs uppercase tracking-wider">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pendingSkills.map((skill) => (
+                    <tr key={skill.id} className="border-b border-outline-variant">
+                      <td className="py-3 font-medium">{skill.nama_skill}</td>
+                      <td className="py-3">
+                        <span className="chip">{skill.kategori ?? 'umum'}</span>
+                      </td>
+                      <td className="py-3 text-on-surface-variant">
+                        {skill.alumni?.nama ?? 'Alumni'}
+                      </td>
+                      <td className="py-3 text-on-surface-variant">
+                        {formatDate(skill.created_at)}
+                      </td>
+                      <td className="py-3">
+                        <SkillActions skillId={skill.id} canModerate={caps.skills} />
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {pendingSkills.map((skill) => (
-                      <tr key={skill.id} className="border-b border-outline-variant">
-                        <td className="py-3 font-medium">{skill.nama_skill}</td>
-                        <td className="py-3">
-                          <span className="chip">{skill.kategori ?? 'umum'}</span>
-                        </td>
-                        <td className="py-3 text-on-surface-variant">
-                          {skill.alumni?.nama ?? 'Alumni'}
-                        </td>
-                        <td className="py-3 text-on-surface-variant">
-                          {formatDate(skill.created_at)}
-                        </td>
-                        <td className="py-3">
-                          <SkillActions skillId={skill.id} canModerate={caps.skills} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              ) : (
-                <p className="text-sm text-on-surface-variant">
-                  Tidak ada permintaan keahlian baru.
-                </p>
-              )}
-            </div>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-sm text-on-surface-variant">
+                Tidak ada permintaan keahlian baru.
+              </p>
+            )}
           </div>
         )}
       </div>
