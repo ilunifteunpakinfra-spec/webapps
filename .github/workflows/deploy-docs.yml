@@ -104,6 +104,13 @@ jobs:
             git push origin docs
           fi
 
+      # Sertakan vercel.json ke dalam publish dir supaya branch gh-pages ikut
+      # memilikinya. Vercel membaca ignoreCommand dari commit branch yang
+      # di-deploy — tanpa file ini, Vercel mencoba build branch gh-pages
+      # (isi statis tanpa package.json) dan menghasilkan deployment ERROR.
+      - name: Include vercel.json in publish dir
+        run: cp vercel.json docs/.vitepress/dist/vercel.json
+
       - name: Deploy to GitHub Pages (branch gh-pages)
         uses: peaceiris/actions-gh-pages@v4
         with:
