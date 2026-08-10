@@ -2,6 +2,18 @@
 
 Alumni Database & Networking Platform untuk Ikatan Alumni Fakultas Teknik Program Studi Teknik Elektro Universitas Pakuan Bogor (ILUNI FT ELEKTRO UNPAK). Dibangun dengan Next.js 14, Supabase, dan Bun.
 
+| | |
+|---|---|
+| **Aplikasi (Production)** | [https://ilunifteunpak.vercel.app](https://ilunifteunpak.vercel.app) |
+| **User Manual (Dokumentasi)** | [https://ilunifteunpakinfra-spec.github.io/webapps/](https://ilunifteunpakinfra-spec.github.io/webapps/) |
+| **Database** | Supabase (PostgreSQL) |
+
+> **Arsitektur Deployment**
+>
+> - Branch `main` → **Vercel** (production app, di-deploy otomatis oleh Vercel Git Integration)
+> - Branch `docs` → **GitHub Pages** (User Manual VitePress + PDF, via `.github/workflows/deploy-docs.yml`)
+> - Vercel hanya memproses branch `main` (lihat `vercel.json` `ignoreCommand`); semua branch lain termasuk `docs` di-skip.
+
 ## 📋 Features
 
 - **Alumni Database** - Profil alumni dengan visibilitas (public/alumni_only/private)
@@ -68,6 +80,12 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app.
 ├── public/                # Static assets
 ├── supabase/              # Database schema
 │   └── schema.sql         # Complete database schema
+├── docs/                  # User Manual (VitePress) — cabang `docs`
+│   ├── .vitepress/        # VitePress config & navigasi
+│   ├── latest/            # Halaman dokumentasi (Markdown)
+│   ├── scripts/           # Skrip generate PDF (Playwright)
+│   └── public/pdfs/       # PDF per halaman + manual-latest.pdf
+├── .github/workflows/     # CI/CD (deploy docs → GitHub Pages, keep-alive Supabase)
 ├── scripts/               # Setup & deployment scripts
 │   ├── setup.sh           # Development setup
 │   ├── deploy.sh          # Deploy everything
@@ -75,6 +93,7 @@ Visit [http://localhost:3000](http://localhost:3000) to see your app.
 │   └── deploy-vercel.sh   # Deploy to Vercel
 ├── .env.example           # Environment variables template
 ├── .env                   # Your environment variables (DO NOT COMMIT)
+├── vercel.json            # Vercel config (skip build untuk branch non-main)
 ├── package.json           # Dependencies & scripts
 └── bun.lock              # Bun lock file
 ```
@@ -170,6 +189,30 @@ The database schema is in `supabase/schema.sql`. It includes:
 - **Language:** TypeScript
 
 ## 🚢 Deployment
+
+### Arsitektur CI/CD
+
+| Branch | Tujuan | Mekanisme |
+|---|---|---|
+| `main` | **Vercel — Production** (`https://ilunifteunpak.vercel.app`) | Vercel Git Integration (`productionBranch: main`); branch lain di-skip via `vercel.json` `ignoreCommand` |
+| `docs` | **GitHub Pages** (`https://ilunifteunpakinfra-spec.github.io/webapps/`) | `.github/workflows/deploy-docs.yml` — build VitePress, generate PDF, push ke branch `gh-pages` |
+| PR ke `docs` | Build check (preview) | Job `preview-check` di `deploy-docs.yml` (tanpa deploy) |
+
+### User Manual (Dokumentasi)
+
+User Manual dikelola sebagai **Docs-as-Code** dengan VitePress di branch `docs`:
+
+```bash
+# Build & preview dokumentasi secara lokal
+git checkout docs
+cd docs
+npm ci
+npm run dev        # http://localhost:5173
+npm run build      # build statis
+npm run pdf        # generate PDF (butuh server preview aktif)
+```
+
+Setiap push ke branch `docs` otomatis: build VitePress → generate PDF per halaman + `manual-latest.pdf` → publish ke GitHub Pages. File PDF hasil CI di-commit kembali ke branch `docs`.
 
 ### Option 1: Automated Deployment (Recommended)
 
@@ -296,6 +339,8 @@ Private - ILUNI FT ELEKTRO UNPAK
 
 ## 🔗 Links
 
+- **Aplikasi (Production):** [https://ilunifteunpak.vercel.app](https://ilunifteunpak.vercel.app)
+- **User Manual (GitHub Pages):** [https://ilunifteunpakinfra-spec.github.io/webapps/](https://ilunifteunpakinfra-spec.github.io/webapps/)
 - [Supabase Dashboard](https://supabase.com/dashboard)
 - [Vercel Dashboard](https://vercel.com)
 - [Next.js Documentation](https://nextjs.org/docs)
@@ -303,5 +348,5 @@ Private - ILUNI FT ELEKTRO UNPAK
 
 ---
 
-**Last Updated:** 2026-05-08
-**Version:** 1.0.0
+**Last Updated:** 2026-08-10
+**Version:** 2.0.0
