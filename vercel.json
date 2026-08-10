@@ -1,0 +1,4 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "ignoreCommand": "if [ \"$VERCEL_GIT_COMMIT_REF\" != \"main\" ]; then echo \"Skip Vercel build for non-production branch: $VERCEL_GIT_COMMIT_REF\"; exit 0; else exit 1; fi"
+}
