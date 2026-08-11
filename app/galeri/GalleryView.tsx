@@ -149,7 +149,7 @@ export default function GalleryView({ photos, isLoggedIn, children }: GalleryVie
               <img
                 src={photo.foto_url}
                 alt={photo.caption ?? 'Foto acara ILUNI FT ELEKTRO'}
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:group-hover:scale-100"
                 loading="lazy"
               />
             </button>

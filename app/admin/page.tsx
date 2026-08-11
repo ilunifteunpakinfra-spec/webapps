@@ -218,7 +218,7 @@ export default async function AdminPage({
                             </div>
                           </div>
                           <span className="whitespace-nowrap font-mono text-[10px] text-on-surface-variant">
-                            &apos;{item.angkatan}
+                            {item.angkatan}
                           </span>
                         </div>
                       );
