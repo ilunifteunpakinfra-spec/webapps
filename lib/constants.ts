@@ -23,6 +23,12 @@ export const GALLERY_QUALITY = 0.85;
 /** Directory pagination size (server-side). */
 export const DIRECTORY_PAGE_SIZE = 12;
 
+/** Jika jumlah lowongan aktif <= ambang ini, card statistik beranda jadi CTA ajakan. */
+export const JOB_CTA_THRESHOLD = 0;
+
+/** Jika jumlah mentor aktif <= ambang ini, card statistik beranda menampilkan CTA kecil. */
+export const MENTOR_CTA_THRESHOLD = 2;
+
 /** Roles that bypass RLS and can access the admin dashboard. */
 export const ADMIN_ROLES = ['super_admin', 'admin'] as const;
 

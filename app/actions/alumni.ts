@@ -50,6 +50,9 @@ export async function ensureAlumniProfile(user: User) {
       // reflects real registrations; users can opt out via the visibility
       // selector on the profile edit page (alumni_only / private).
       visibilitas: 'public',
+      // Explicit default: not open to work until the alumni enables the
+      // toggle on the profile edit page (DB default is also false).
+      status_open_to_work: false,
     })
     .select('id')
     .single();

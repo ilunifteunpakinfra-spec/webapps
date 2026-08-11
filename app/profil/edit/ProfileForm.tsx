@@ -272,7 +272,8 @@ export default function ProfileForm({
           <div>
             <div className="font-montserrat font-bold">Open to Work</div>
             <p className="text-xs text-on-surface-variant">
-              Tampilkan status siap bekerja di direktori
+              Tampilkan status siap bekerja di direktori. Alumni lain akan melihat
+              badge ini di profil dan direktori Anda.
             </p>
           </div>
           <button

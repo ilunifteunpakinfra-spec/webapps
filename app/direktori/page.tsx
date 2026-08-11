@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import AlumniCard from '@/components/AlumniCard';
+import FilterAccordion from '@/components/FilterAccordion';
 import { createClient } from '@/lib/supabase/server';
 import { DIRECTORY_PAGE_SIZE } from '@/lib/constants';
 import { asString } from '@/lib/utils';
+import { buildNormalizedOptions, type FilterOptionRow } from '@/lib/normalize';
 import type { AlumniWithSkills } from '@/lib/types';
 
 type DirectorySearchParams = {
@@ -60,14 +63,13 @@ export default async function DirektoriPage({
     .filter((row) => row.field === 'angkatan')
     .map((row) => row.value)
     .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
-  const pekerjaanOptions = filterOptions
-    .filter((row) => row.field === 'pekerjaan')
-    .map((row) => row.value)
-    .sort((a, b) => a.localeCompare(b));
-  const kotaOptions = filterOptions
-    .filter((row) => row.field === 'kota')
-    .map((row) => row.value)
-    .sort((a, b) => a.localeCompare(b));
+  // Nilai Kota & Pekerjaan dinormalisasi saat ditampilkan (title-case, merge
+  // alias "Kota Bogor"/"kab bogor" -> "Bogor") tanpa mengubah data mentah di DB.
+  const pekerjaanOptions = buildNormalizedOptions(
+    filterOptions as FilterOptionRow[],
+    'pekerjaan'
+  );
+  const kotaOptions = buildNormalizedOptions(filterOptions as FilterOptionRow[], 'kota');
 
   let query = supabase
     .from('alumni')
@@ -99,6 +101,16 @@ export default async function DirektoriPage({
 
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / DIRECTORY_PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
+
+  // Jumlah filter yang sedang aktif (untuk badge di tombol Filter mobile).
+  const activeFilterCount = [
+    q,
+    angkatan,
+    pekerjaan,
+    kota,
+    skill,
+    openToWork ? 'true' : undefined,
+  ].filter(Boolean).length;
 
   function buildHref(patch: Record<string, string | undefined>) {
     const params = new URLSearchParams();
@@ -152,36 +164,59 @@ export default async function DirektoriPage({
               className="input-field pl-9"
             />
           </div>
-          <div className="flex flex-wrap gap-2">
-            <select name="angkatan" className="input-field w-auto" defaultValue={angkatan ?? ''}>
-              <option value="">Semua Angkatan</option>
-              {angkatanOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <select name="pekerjaan" className="input-field w-auto" defaultValue={pekerjaan ?? ''}>
-              <option value="">Semua Pekerjaan</option>
-              {pekerjaanOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <select name="kota" className="input-field w-auto" defaultValue={kota ?? ''}>
-              <option value="">Semua Kota</option>
-              {kotaOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <button type="submit" className="btn-primary">
-              <Search className="h-4 w-4" />
-              Cari
-            </button>
-          </div>
+          <FilterAccordion
+            activeCount={activeFilterCount}
+            submitButton={
+              <button type="submit" className="btn-primary w-full">
+                <Search className="h-4 w-4" />
+                Cari
+              </button>
+            }
+          >
+            <div className="flex flex-wrap gap-2">
+              <select
+                name="angkatan"
+                className="input-field w-auto"
+                defaultValue={angkatan ?? ''}
+              >
+                <option value="">Semua Angkatan</option>
+                {angkatanOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              <select
+                name="pekerjaan"
+                className="input-field w-auto"
+                defaultValue={pekerjaan ?? ''}
+              >
+                <option value="">Semua Pekerjaan</option>
+                {pekerjaanOptions.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.value}
+                  </option>
+                ))}
+              </select>
+              <select
+                name="kota"
+                className="input-field w-auto"
+                defaultValue={kota ?? ''}
+              >
+                <option value="">Semua Kota</option>
+                {kotaOptions.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.value}
+                  </option>
+                ))}
+              </select>
+              {/* Submit desktop — mobile memakai tombol sticky di FilterAccordion */}
+              <button type="submit" className="btn-primary hidden md:inline-flex">
+                <Search className="h-4 w-4" />
+                Cari
+              </button>
+            </div>
+          </FilterAccordion>
         </form>
 
         {/* Skill chips + open-to-work toggle */}
@@ -211,62 +246,22 @@ export default async function DirektoriPage({
         </div>
 
         {/* Results count */}
-        <p className="mb-4 text-sm text-on-surface-variant">
+        <p className="mb-1 text-sm text-on-surface-variant">
           {(count ?? 0).toLocaleString('id-ID')} profil alumni publik dari{' '}
           {totalAlumni.toLocaleString('id-ID')} alumni terdaftar
+        </p>
+        <p className="mb-4 flex items-start gap-1.5 text-xs text-on-surface-variant">
+          <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+          <span>
+            Alumni lain belum melengkapi profil atau memilih privasi tertutup.
+          </span>
         </p>
 
         {/* Alumni Grid */}
         {alumni && alumni.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {(alumni as unknown as AlumniWithSkills[]).map((a) => (
-              <div key={a.id} className="card relative">
-                {a.status_open_to_work && (
-                  <span className="absolute right-3 top-3 chip-active">Open to Work</span>
-                )}
-                <div className="flex items-start gap-4">
-                  {a.foto_profil ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={a.foto_profil}
-                      alt={a.nama}
-                      className="h-16 w-16 rounded border border-tech-black object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-16 w-16 items-center justify-center rounded border border-tech-black bg-surface-container font-montserrat text-xl font-bold text-on-surface-variant">
-                      {a.nama.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <h3 className="font-montserrat text-lg font-bold">{a.nama}</h3>
-                    {a.angkatan && <div className="label-mono mb-1">Angkatan {a.angkatan}</div>}
-                    <div className="text-sm font-medium">{a.pekerjaan}</div>
-                    <div className="text-sm text-on-surface-variant">{a.perusahaan}</div>
-                  </div>
-                </div>
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  {a.alumni_skills?.map((entry) => (
-                    <span key={entry.skill_id} className="chip">
-                      {entry.skills?.nama_skill}
-                    </span>
-                  ))}
-                </div>
-                <div className="mt-4 flex items-center justify-between border-t border-outline-variant pt-3">
-                  <span
-                    className={`status-dot ${
-                      a.status_open_to_work
-                        ? 'status-dot-active'
-                        : 'status-dot-inactive'
-                    }`}
-                  />
-                  <Link
-                    href={`/profil/${a.id}`}
-                    className="text-sm font-medium text-primary-container hover:underline"
-                  >
-                    Lihat Profil
-                  </Link>
-                </div>
-              </div>
+              <AlumniCard key={a.id} alumni={a} />
             ))}
           </div>
         ) : (

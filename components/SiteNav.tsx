@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Zap, UserCircle2, ShieldCheck, LogOut, Menu, X } from 'lucide-react';
+import { Zap, UserCircle2, ShieldCheck, LogOut, Menu, X, ExternalLink } from 'lucide-react';
 import { signOutAction } from '@/app/actions/auth';
 import type { User } from '@supabase/supabase-js';
 
@@ -66,7 +66,12 @@ export default function SiteNav({ user, isAdmin }: Props) {
               aria-current={isActive(pathname, link.href) ? 'page' : undefined}
               className={isActive(pathname, link.href) ? 'nav-link-active' : 'nav-link'}
             >
-              {link.label}
+              <span className="inline-flex items-center gap-1">
+                {link.label}
+                {link.external && (
+                  <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                )}
+              </span>
             </Link>
           ))}
         </div>
@@ -139,7 +144,12 @@ export default function SiteNav({ user, isAdmin }: Props) {
                       : 'border-transparent text-on-surface hover:bg-surface-container'
                   }`}
                 >
-                  {link.label}
+                  <span className="inline-flex items-center gap-1">
+                    {link.label}
+                    {link.external && (
+                      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                    )}
+                  </span>
                 </Link>
               );
             })}
