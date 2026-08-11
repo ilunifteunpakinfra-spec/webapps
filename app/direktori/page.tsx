@@ -39,26 +39,35 @@ export default async function DirektoriPage({
 
   const supabase = await createClient();
 
-  // Load filter options + total registered count in parallel with the alumni query.
-  // RLS hides alumni_only/private rows from anonymous visitors, so the visible
-  // count only includes public profiles; count_alumni_total() (SECURITY DEFINER)
-  // returns just the aggregate total without exposing hidden rows.
-  const [{ data: angkatanRows }, { data: skillRows }, totalCountResult] =
+  // Opsi filter berasal dari agregat SEMUA alumni terdaftar (get_filter_options,
+  // SECURITY DEFINER) agar sinkron dengan data di database; hasil pencarian tetap
+  // hanya profil public (RLS), dan count_alumni_total() mengembalikan total agregat.
+  const [{ data: skillRows }, { data: filterOptionsRows }, totalCountResult] =
     await Promise.all([
-      supabase
-        .from('alumni')
-        .select('angkatan')
-        .not('angkatan', 'is', null)
-        .order('angkatan', { ascending: false }),
       supabase.from('skills').select('id, nama_skill').order('nama_skill'),
+      supabase.rpc('get_filter_options'),
       supabase.rpc('count_alumni_total'),
     ]);
 
   const totalAlumni = Number(totalCountResult.data ?? 0);
 
-  const angkatanOptions = Array.from(
-    new Set((angkatanRows ?? []).map((row) => row.angkatan).filter(Boolean))
-  ) as string[];
+  const filterOptions = (filterOptionsRows ?? []) as {
+    field: string;
+    value: string;
+    jumlah: number;
+  }[];
+  const angkatanOptions = filterOptions
+    .filter((row) => row.field === 'angkatan')
+    .map((row) => row.value)
+    .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+  const pekerjaanOptions = filterOptions
+    .filter((row) => row.field === 'pekerjaan')
+    .map((row) => row.value)
+    .sort((a, b) => a.localeCompare(b));
+  const kotaOptions = filterOptions
+    .filter((row) => row.field === 'kota')
+    .map((row) => row.value)
+    .sort((a, b) => a.localeCompare(b));
 
   let query = supabase
     .from('alumni')
@@ -154,15 +163,19 @@ export default async function DirektoriPage({
             </select>
             <select name="pekerjaan" className="input-field w-auto" defaultValue={pekerjaan ?? ''}>
               <option value="">Semua Pekerjaan</option>
-              <option value="Engineer">Engineer</option>
-              <option value="Manager">Manager</option>
-              <option value="Consultant">Consultant</option>
+              {pekerjaanOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
             </select>
             <select name="kota" className="input-field w-auto" defaultValue={kota ?? ''}>
               <option value="">Semua Kota</option>
-              <option value="Jakarta">Jakarta</option>
-              <option value="Bogor">Bogor</option>
-              <option value="Bandung">Bandung</option>
+              {kotaOptions.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
             </select>
             <button type="submit" className="btn-primary">
               <Search className="h-4 w-4" />

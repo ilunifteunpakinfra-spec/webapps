@@ -24,58 +24,79 @@ export default async function Home() {
   const supabase = await createClient();
   const user = await getCurrentUser();
 
-  // Real stats (RLS-aware: unauthenticated visitors only count public profiles).
-  const [alumniCount, jobsCount, mentorCount, citiesQuery, angkatanQuery, featuredQuery] =
-    await Promise.all([
-      supabase.from('alumni').select('id', { count: 'exact', head: true }),
-      supabase
-        .from('job_postings')
-        .select('id', { count: 'exact', head: true })
-        .eq('status', 'active')
-        .or(`expired_at.is.null,expired_at.gt.${new Date().toISOString()}`),
-      supabase
-        .from('mentor_profiles')
-        .select('alumni_id', { count: 'exact', head: true })
-        .eq('status_aktif', true),
-      supabase
-        .from('alumni')
-        .select('alamat_tinggal')
-        .not('alamat_tinggal', 'is', null),
-      supabase.from('alumni').select('angkatan').not('angkatan', 'is', null),
-      supabase
-        .from('alumni')
-        .select(
-          'id, nama, angkatan, pekerjaan, perusahaan, alamat_tinggal, status_open_to_work, foto_profil, contribution_score, alumni_skills(skill_id, level, skills(nama_skill))'
-        )
-        .order('contribution_score', { ascending: false })
-        .limit(6),
-    ]);
+  // Statistik & opsi filter agregat (count_alumni_total/get_filter_options)
+  // dihitung server-side (SECURITY DEFINER) atas SEMUA alumni terdaftar —
+  // angka agregat bukan data profil, jadi tidak mengikuti privasi visibilitas.
+  // Lowongan/Mentor dibaca langsung (tabelnya public-read untuk pengunjung).
+  const [
+    totalAlumniResult,
+    jobsCount,
+    mentorCount,
+    filterOptionsResult,
+    angkatanQuery,
+    skillsQuery,
+    featuredQuery,
+  ] = await Promise.all([
+    supabase.rpc('count_alumni_total'),
+    supabase
+      .from('job_postings')
+      .select('id', { count: 'exact', head: true })
+      .eq('status', 'active')
+      .or(`expired_at.is.null,expired_at.gt.${new Date().toISOString()}`),
+    supabase
+      .from('mentor_profiles')
+      .select('alumni_id', { count: 'exact', head: true })
+      .eq('status_aktif', true),
+    supabase.rpc('get_filter_options'),
+    supabase.rpc('get_angkatan_distribution'),
+    supabase.from('skills').select('id, nama_skill').order('nama_skill'),
+    supabase
+      .from('alumni')
+      .select(
+        'id, nama, angkatan, pekerjaan, perusahaan, alamat_tinggal, status_open_to_work, foto_profil, contribution_score, alumni_skills(skill_id, level, skills(nama_skill))'
+      )
+      .order('contribution_score', { ascending: false })
+      .limit(6),
+  ]);
 
-  const cityCount = Array.from(
-    new Set(
-      (citiesQuery.data ?? [])
-        .map((row) => row.alamat_tinggal?.trim())
-        .filter((value): value is string => Boolean(value))
-    )
-  ).length;
+  const totalAlumni = Number(totalAlumniResult.data ?? 0);
 
-  // Semua angkatan, diurutkan naik (X = angkatan, Y = jumlah alumni).
-  const angkatanCounts = new Map<string, number>();
-  for (const row of angkatanQuery.data ?? []) {
-    if (!row.angkatan) continue;
-    angkatanCounts.set(row.angkatan, (angkatanCounts.get(row.angkatan) ?? 0) + 1);
-  }
-  const angkatanData = Array.from(angkatanCounts.entries())
-    .map(([angkatan, count]) => ({ angkatan, count }))
+  // Opsi filter pencarian publik — dinamis dari SEMUA alumni terdaftar.
+  const filterOptions = (filterOptionsResult.data ?? []) as {
+    field: string;
+    value: string;
+    jumlah: number;
+  }[];
+  const angkatanOptions = filterOptions
+    .filter((row) => row.field === 'angkatan')
+    .map((row) => row.value)
+    .sort((a, b) => b.localeCompare(a, undefined, { numeric: true }));
+  const pekerjaanOptions = filterOptions
+    .filter((row) => row.field === 'pekerjaan')
+    .map((row) => row.value)
+    .sort((a, b) => a.localeCompare(b));
+  const kotaOptions = filterOptions
+    .filter((row) => row.field === 'kota')
+    .map((row) => row.value)
+    .sort((a, b) => a.localeCompare(b));
+  const skillOptions = (skillsQuery.data ?? []) as { id: string; nama_skill: string }[];
+
+  // Distribusi dihitung lewat RPC SECURITY DEFINER atas SEMUA alumni terdaftar:
+  // agregat jumlah per angkatan bukan data profil, jadi tidak perlu mengikuti
+  // privasi visibilitas (public/alumni_only/private). Diurutkan naik (X = angkatan).
+  const angkatanData = (
+    (angkatanQuery.data ?? []) as { angkatan: string; jumlah: number }[]
+  )
+    .map((row) => ({ angkatan: row.angkatan, count: Number(row.jumlah) }))
     .sort((a, b) => a.angkatan.localeCompare(b.angkatan, undefined, { numeric: true }));
   const maxAngkatan = Math.max(1, ...angkatanData.map((item) => item.count));
   const BAR_AREA_HEIGHT = 96;
 
   const stats = [
-    { icon: Users, label: 'Alumni Terdaftar', value: (alumniCount.count ?? 0).toLocaleString('id-ID') },
+    { icon: Users, label: 'Alumni Terdaftar', value: totalAlumni.toLocaleString('id-ID') },
     { icon: Briefcase, label: 'Lowongan Aktif', value: (jobsCount.count ?? 0).toLocaleString('id-ID') },
     { icon: GraduationCap, label: 'Mentor Aktif', value: (mentorCount.count ?? 0).toLocaleString('id-ID') },
-    { icon: MapPin, label: 'Kota Terjangkau', value: `${cityCount}` },
+    { icon: MapPin, label: 'Kota Terjangkau', value: `${kotaOptions.length}` },
   ];
 
   const featured = (featuredQuery.data ?? []) as unknown as AlumniWithSkills[];
@@ -130,28 +151,35 @@ export default async function Home() {
               <div className="flex flex-wrap gap-2">
                 <select name="angkatan" className="input-field w-auto">
                   <option value="">Angkatan</option>
-                  <option value="'20">&apos;20</option>
-                  <option value="'15">&apos;15</option>
-                  <option value="'10">&apos;10</option>
-                  <option value="'05">&apos;05</option>
+                  {angkatanOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
                 </select>
                 <select name="pekerjaan" className="input-field w-auto">
                   <option value="">Pekerjaan</option>
-                  <option value="Engineer">Engineer</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Consultant">Consultant</option>
+                  {pekerjaanOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
                 </select>
                 <select name="kota" className="input-field w-auto">
                   <option value="">Kota</option>
-                  <option value="Jakarta">Jakarta</option>
-                  <option value="Bogor">Bogor</option>
-                  <option value="Bandung">Bandung</option>
+                  {kotaOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
                 </select>
                 <select name="skill" className="input-field w-auto">
                   <option value="">Skill</option>
-                  <option value="SCADA">SCADA</option>
-                  <option value="IoT">IoT</option>
-                  <option value="Power Systems">Power Systems</option>
+                  {skillOptions.map((skill) => (
+                    <option key={skill.id} value={skill.nama_skill}>
+                      {skill.nama_skill}
+                    </option>
+                  ))}
                 </select>
                 <button type="submit" className="btn-primary">
                   <Search className="h-4 w-4" />
