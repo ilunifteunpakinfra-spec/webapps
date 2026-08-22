@@ -22,6 +22,9 @@ CREATE TABLE alumni (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   nama TEXT NOT NULL,
   angkatan TEXT,
+  -- NPM (Nomor Pokok Mahasiswa): opsional, digit saja; unik antar akun
+  -- via partial unique index alumni_npm_unique_idx (lihat bagian indeks).
+  npm TEXT,
   tahun_lulus INT NOT NULL,
   pekerjaan TEXT,
   perusahaan TEXT,
@@ -198,12 +201,16 @@ CREATE TABLE poll_votes (
 );
 
 -- 2.15 Event Gallery
+-- status: pending = menunggu moderasi admin, active = tampil publik,
+-- hidden = soft delete (tolak/sembunyikan); history hanya untuk super admin.
 CREATE TABLE event_gallery (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   event_id TEXT,
   alumni_id UUID REFERENCES alumni(id) ON DELETE CASCADE,
   foto_url TEXT,
   caption TEXT,
+  status TEXT NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending', 'active', 'hidden')),
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -218,6 +225,9 @@ CREATE INDEX idx_alumni_pekerjaan ON alumni (pekerjaan);
 CREATE INDEX idx_alumni_open_to_work ON alumni (status_open_to_work);
 CREATE INDEX idx_alumni_verifikasi ON alumni (status_verifikasi);
 CREATE INDEX idx_alumni_visibilitas ON alumni (visibilitas);
+-- Satu NPM tidak boleh dipakai dua akun; kosong diperbolehkan (data lama).
+CREATE UNIQUE INDEX IF NOT EXISTS alumni_npm_unique_idx
+  ON alumni (npm) WHERE npm IS NOT NULL AND npm <> '';
 CREATE INDEX idx_alumni_skills_alumni ON alumni_skills (alumni_id);
 CREATE INDEX idx_alumni_skills_skill ON alumni_skills (skill_id);
 CREATE INDEX idx_endorsements_alumni ON endorsements (alumni_id);
@@ -234,6 +244,7 @@ CREATE INDEX idx_group_thread_replies_thread ON group_thread_replies (thread_id,
 CREATE INDEX idx_poll_options_poll ON poll_options (poll_id);
 CREATE INDEX idx_poll_votes_poll ON poll_votes (poll_id);
 CREATE INDEX idx_event_gallery_event ON event_gallery (event_id);
+CREATE INDEX idx_event_gallery_status ON event_gallery (status, created_at DESC);
 
 -- ============================================
 -- 4. TRIGGERS (updated_at)
@@ -610,15 +621,24 @@ CREATE POLICY "auth_vote_once"
   );
 
 -- ============================================
--- 5.15 EVENT GALLERY POLICIES
+-- 5.15 EVENT GALLERY POLICIES (dengan moderasi)
 -- ============================================
-CREATE POLICY "public_read_event_gallery"
+-- Visibilitas SELECT tercakup: publik hanya 'active'; pemilik melihat
+-- miliknya di semua status; admin moderate_gallery melihat pending;
+-- super admin melihat SEMUA baris (keseluruhan history).
+CREATE POLICY "gallery_select_scoped"
   ON event_gallery FOR SELECT
-  USING (true);
+  USING (
+    status = 'active'
+    OR alumni_id = auth.uid()
+    OR (public.can_moderate_gallery() AND status = 'pending')
+    OR public.is_super_admin()
+  );
 
+-- INSERT pemilik wajib 'pending' (anti-bypass moderasi dari klien)
 CREATE POLICY "auth_upload_event_photos"
   ON event_gallery FOR INSERT
-  WITH CHECK (alumni_id = auth.uid());
+  WITH CHECK (alumni_id = auth.uid() AND status = 'pending');
 
 -- ============================================
 -- 6. ADMIN ROLES (Bypass RLS)
@@ -641,6 +661,50 @@ BEGIN
 END;
 $$;
 
+-- Super admin saja (untuk visibilitas history galeri & aksi pemulihan)
+CREATE OR REPLACE FUNCTION public.is_super_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM auth.users
+    WHERE id = auth.uid()
+      AND raw_app_meta_data->>'role' = 'super_admin'
+  );
+$$;
+
+-- Policy SELECT memanggil fungsi ini, jadi anon juga butuh EXECUTE
+-- (pola sama dengan is_admin(); tanpa claims JWT hasilnya false).
+REVOKE EXECUTE ON FUNCTION public.is_super_admin() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_super_admin() TO anon, authenticated;
+
+-- Helper khusus policy galeri: boleh memoderasi galeri? Terpisah dari
+-- has_admin_capability() karena fungsi itu di-REVOKE dari anon, padahal
+-- policy SELECT harus bisa dievaluasi untuk role anon.
+CREATE OR REPLACE FUNCTION public.can_moderate_gallery()
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM auth.users
+    WHERE id = auth.uid()
+      AND (
+        raw_app_meta_data->>'role' = 'super_admin'
+        OR (
+          raw_app_meta_data->>'role' = 'admin'
+          AND COALESCE(raw_app_meta_data->'capabilities', '[]'::jsonb) ? 'moderate_gallery'
+        )
+      )
+  );
+$$;
+
+REVOKE EXECUTE ON FUNCTION public.can_moderate_gallery() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.can_moderate_gallery() TO anon, authenticated;
+
 -- Admin bypass policies (applied to all tables)
 CREATE POLICY "admin_bypass_alumni" ON alumni FOR ALL USING (is_admin());
 CREATE POLICY "admin_bypass_skills" ON skills FOR ALL USING (is_admin());
@@ -656,7 +720,14 @@ CREATE POLICY "admin_bypass_group_members" ON group_members FOR ALL USING (is_ad
 CREATE POLICY "admin_bypass_polls" ON polls FOR ALL USING (is_admin());
 CREATE POLICY "admin_bypass_poll_options" ON poll_options FOR ALL USING (is_admin());
 CREATE POLICY "admin_bypass_poll_votes" ON poll_votes FOR ALL USING (is_admin());
-CREATE POLICY "admin_bypass_event_gallery" ON event_gallery FOR ALL USING (is_admin());
+-- Galeri: bypass tulis-saja; SELECT dikendalikan gallery_select_scoped agar
+-- history tersembunyi hanya dapat dibaca super admin.
+CREATE POLICY "admin_insert_event_gallery"
+  ON event_gallery FOR INSERT WITH CHECK (is_admin());
+CREATE POLICY "admin_update_event_gallery"
+  ON event_gallery FOR UPDATE USING (is_admin()) WITH CHECK (is_admin());
+CREATE POLICY "admin_delete_event_gallery"
+  ON event_gallery FOR DELETE USING (is_admin());
 
 -- ============================================
 -- 7. SEED DATA (Sample Skills)

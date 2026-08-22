@@ -78,6 +78,20 @@ export default function EditAlumniModal({ row, onClose }: Props) {
           </div>
 
           <div>
+            <label className="label-mono mb-1 block">NPM</label>
+            <input
+              name="npm"
+              type="text"
+              inputMode="numeric"
+              pattern="\d*"
+              maxLength={20}
+              defaultValue={row.npm ?? ''}
+              placeholder="cth. 2020113123"
+              className="input-field"
+            />
+          </div>
+
+          <div>
             <label className="label-mono mb-1 block">Tahun Lulus *</label>
             <input
               name="tahun_lulus"

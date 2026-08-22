@@ -1,8 +1,9 @@
 // ============================================
-// ILUNI FTE WebApps - Filter Value Normalization
+// ILUNI FTE WebApps - Value Normalization Utilities
 // ============================================
 // Normalisasi nilai dropdown filter (kota & pekerjaan) DI TAMPILAN,
-// tanpa mengubah data mentah di database (histori data tetap utuh).
+// tanpa mengubah data mentah di database (histori data tetap utuh),
+// serta normalisasi input biodata (NPM).
 
 /** Akronim yang wajib tetap huruf besar saat title-case. */
 const ACRONYMS = new Set([
@@ -105,6 +106,24 @@ export function normalizePekerjaan(raw: string): string | null {
   const value = raw.trim().replace(/\s+/g, ' ');
   if (!value || EMPTY_PLACEHOLDER.test(value)) return null;
   return titleCaseLabel(value);
+}
+
+/**
+ * Normalisasi NPM (Nomor Pokok Mahasiswa) — opsional:
+ * - kosong / whitespace -> { value: null } (tidak wajib diisi)
+ * - harus digit saja, 1-20 karakter
+ * Mengembalikan error berbahasa Indonesia bila format tidak valid.
+ */
+export function normalizeNpm(raw: string): {
+  value: string | null;
+  error: string | null;
+} {
+  const trimmed = raw.trim();
+  if (!trimmed) return { value: null, error: null };
+  if (!/^\d{1,20}$/.test(trimmed)) {
+    return { value: null, error: 'NPM hanya boleh berisi angka (maks. 20 digit).' };
+  }
+  return { value: trimmed, error: null };
 }
 
 export type FilterOptionRow = { field: string; value: string; jumlah: number };

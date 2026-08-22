@@ -9,6 +9,7 @@
 export const IMPORT_COLUMNS = [
   'nama',
   'angkatan',
+  'npm',
   'tahun_lulus',
   'pekerjaan',
   'perusahaan',

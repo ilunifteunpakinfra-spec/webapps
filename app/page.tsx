@@ -10,7 +10,7 @@ import {
   Zap,
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import AlumniCard from '@/components/AlumniCard';
+import AlumniCarousel from '@/components/AlumniCarousel';
 import FilterAccordion from '@/components/FilterAccordion';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/user';
@@ -56,13 +56,15 @@ export default async function Home() {
     supabase.rpc('get_filter_options'),
     supabase.rpc('get_angkatan_distribution'),
     supabase.from('skills').select('id, nama_skill').order('nama_skill'),
+    // Pool carousel beranda: diambil lebih banyak lalu DIACAK di sisi klien
+    // (AlumniCarousel) sehingga urutan tampil beda setiap kunjungan.
     supabase
       .from('alumni')
       .select(
         'id, nama, angkatan, pekerjaan, perusahaan, alamat_tinggal, status_open_to_work, foto_profil, contribution_score, alumni_skills(skill_id, level, skills(nama_skill))'
       )
       .order('contribution_score', { ascending: false })
-      .limit(6),
+      .limit(24),
   ]);
 
   const totalAlumni = Number(totalAlumniResult.data ?? 0);
@@ -369,11 +371,7 @@ export default async function Home() {
         </div>
 
         {featured.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {featured.map((alumni) => (
-              <AlumniCard key={alumni.id} alumni={alumni} showSkillsLimit={4} />
-            ))}
-          </div>
+          <AlumniCarousel alumni={featured} pageSize={3} autoRotateMs={6000} />
         ) : (
           <div className="card text-center text-on-surface-variant">
             Belum ada profil alumni yang tampil. Jadilah yang pertama mendaftar!

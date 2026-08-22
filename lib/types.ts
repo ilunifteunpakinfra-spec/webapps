@@ -9,6 +9,8 @@ export type AlumniRow = {
   id: string;
   nama: string;
   angkatan: string | null;
+  /** Nomor Pokok Mahasiswa — opsional, digit saja, unik antar akun. */
+  npm: string | null;
   tahun_lulus: number;
   pekerjaan: string | null;
   perusahaan: string | null;
@@ -54,6 +56,20 @@ export type AlumniWithSkills = AlumniRow & {
   alumni_skills: AlumniSkillRow[];
 };
 
+/** Moderation status of a gallery photo. */
+export type GalleryStatus = 'pending' | 'active' | 'hidden';
+
+/** Row shape of the `event_gallery` table. */
+export type EventGalleryRow = {
+  id: string;
+  event_id: string | null;
+  alumni_id: string;
+  foto_url: string | null;
+  caption: string | null;
+  status: GalleryStatus;
+  created_at?: string;
+};
+
 /** Row shape of the `job_postings` table. */
 export type JobPostingRow = {
   id: string;
@@ -86,6 +102,7 @@ export type AlumniAdminRow = {
   id: string;
   nama: string;
   angkatan: string | null;
+  npm: string | null;
   tahun_lulus: number | null;
   pekerjaan: string | null;
   perusahaan: string | null;

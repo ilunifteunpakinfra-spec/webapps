@@ -2,10 +2,12 @@ import { createClient } from '@/lib/supabase/server';
 import { isAdminUser } from '@/lib/supabase/user';
 import { NextResponse } from 'next/server';
 import { IMPORT_COLUMNS } from '@/lib/csv-import';
+import { normalizeNpm } from '@/lib/normalize';
 
 type ImportRow = {
   nama: string;
   angkatan: string | null;
+  npm: string | null;
   tahun_lulus: number;
   pekerjaan: string | null;
   perusahaan: string | null;
@@ -108,6 +110,7 @@ export async function POST(request: Request) {
     const email = get('email');
     const tahunRaw = Number(get('tahun_lulus'));
     const openToWork = parseBooleanCell(get('status_open_to_work'));
+    const npm = normalizeNpm(get('npm'));
 
     if (!nama || !email) {
       errors.push(`Baris ${lineNumber}: nama dan email wajib diisi.`);
@@ -123,10 +126,15 @@ export async function POST(request: Request) {
       );
       return;
     }
+    if (npm.error) {
+      errors.push(`Baris ${lineNumber}: ${npm.error}`);
+      return;
+    }
 
     data.push({
       nama,
       angkatan: get('angkatan') || null,
+      npm: npm.value,
       tahun_lulus: tahunRaw,
       pekerjaan: get('pekerjaan') || null,
       perusahaan: get('perusahaan') || null,

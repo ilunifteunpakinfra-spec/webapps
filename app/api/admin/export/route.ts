@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 const CSV_COLUMNS = [
   'nama',
   'angkatan',
+  'npm',
   'tahun_lulus',
   'pekerjaan',
   'perusahaan',

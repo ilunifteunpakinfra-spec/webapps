@@ -25,6 +25,7 @@ import {
 import ReportActions from './ReportActions';
 import ContentActions from './ContentActions';
 import SkillActions from './SkillActions';
+import GalleryActions from './GalleryActions';
 
 export const metadata: Metadata = {
   title: 'Moderasi Konten - ILUNI FT ELEKTRO UNPAK',
@@ -54,7 +55,20 @@ type JobRow = { id: string; judul: string; perusahaan: string | null; status: st
 type AnnouncementRow = { id: string; judul: string; status: string; created_at: string | null };
 type PollRow = { id: string; judul: string; expired_at: string | null; created_at: string | null };
 type GroupRow = { id: string; nama: string; tipe: string | null; created_at: string | null };
-type GalleryRow = { id: string; caption: string | null; foto_url: string | null; created_at: string | null };
+type GalleryRow = {
+  id: string;
+  caption: string | null;
+  foto_url: string | null;
+  status: string;
+  created_at: string | null;
+};
+
+/** Urutkan antrian moderasi: pending dulu, lalu active, terakhir hidden. */
+const GALLERY_STATUS_ORDER: Record<string, number> = {
+  pending: 0,
+  active: 1,
+  hidden: 2,
+};
 type SkillRow = {
   id: string;
   nama_skill: string;
@@ -119,9 +133,9 @@ export default async function AdminModerationPage({
       .limit(20),
     supabase
       .from('event_gallery')
-      .select('id, caption, foto_url, created_at')
+      .select('id, caption, foto_url, status, created_at')
       .order('created_at', { ascending: false })
-      .limit(20),
+      .limit(50),
     supabase
       .from('skills')
       .select('id, nama_skill, kategori, status, created_at, requested_by, alumni!skills_requested_by_fkey(nama)')
@@ -138,6 +152,7 @@ export default async function AdminModerationPage({
     gallery: hasCapability(user, 'moderate_gallery'),
     skills: hasCapability(user, 'moderate_skills'),
     reports: hasCapability(user, 'moderate_reports'),
+    superAdmin: isSuperAdmin(user),
   };
 
   const reports = (reportQuery.data ?? []) as unknown as ReportRow[];
@@ -145,7 +160,10 @@ export default async function AdminModerationPage({
   const announcements = (announcementQuery.data ?? []) as AnnouncementRow[];
   const polls = (pollQuery.data ?? []) as PollRow[];
   const groups = (groupQuery.data ?? []) as GroupRow[];
-  const photos = (galleryQuery.data ?? []) as GalleryRow[];
+  const photos = ((galleryQuery.data ?? []) as GalleryRow[]).sort(
+    (a, b) =>
+      (GALLERY_STATUS_ORDER[a.status] ?? 9) - (GALLERY_STATUS_ORDER[b.status] ?? 9)
+  );
   const pendingSkills = (skillQuery.data ?? []) as unknown as SkillRow[];
 
   return (
@@ -433,7 +451,9 @@ export default async function AdminModerationPage({
                 Galeri
               </h2>
               <p className="mb-3 text-sm text-on-surface-variant">
-                Hapus foto yang tidak pantas; file di storage ikut terhapus.
+                Foto baru menunggu persetujuan (pending). Setujui/Tolak antrian,
+                sembunyikan foto aktif; pulihkan atau hapus permanen history
+                hanya untuk super admin.
               </p>
               {photos.length > 0 ? (
                 <table className="w-full text-sm">
@@ -441,6 +461,7 @@ export default async function AdminModerationPage({
                     <tr className="border-b border-outline-variant text-left">
                       <th className="pb-2 font-mono text-xs uppercase tracking-wider">Foto</th>
                       <th className="pb-2 font-mono text-xs uppercase tracking-wider">Caption</th>
+                      <th className="pb-2 font-mono text-xs uppercase tracking-wider">Status</th>
                       <th className="pb-2 font-mono text-xs uppercase tracking-wider">Aksi</th>
                     </tr>
                   </thead>
@@ -463,10 +484,28 @@ export default async function AdminModerationPage({
                           {photo.caption || 'Tanpa caption'}
                         </td>
                         <td className="py-3">
-                          <ContentActions
-                            kind="gallery"
-                            id={photo.id}
+                          <span
+                            className={`chip ${
+                              photo.status === 'pending'
+                                ? 'chip-active'
+                                : photo.status === 'hidden'
+                                  ? 'opacity-60'
+                                  : ''
+                            }`}
+                          >
+                            {photo.status === 'pending'
+                              ? 'Menunggu'
+                              : photo.status === 'active'
+                                ? 'Aktif'
+                                : 'Tersembunyi'}
+                          </span>
+                        </td>
+                        <td className="py-3">
+                          <GalleryActions
+                            photoId={photo.id}
+                            status={photo.status}
                             canModerate={caps.gallery}
+                            isSuperAdmin={caps.superAdmin}
                           />
                         </td>
                       </tr>

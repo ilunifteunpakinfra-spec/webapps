@@ -336,6 +336,22 @@ export default function ProfileForm({
               />
             </div>
             <div>
+              <label className="label-mono mb-1 block" htmlFor="npm">
+                NPM
+              </label>
+              <input
+                id="npm"
+                name="npm"
+                type="text"
+                inputMode="numeric"
+                pattern="\d*"
+                maxLength={20}
+                placeholder="cth. 054105001"
+                defaultValue={profile?.npm ?? ''}
+                className="input-field"
+              />
+            </div>
+            <div>
               <label className="label-mono mb-1 block" htmlFor="tahun_lulus">
                 Tahun Lulus *
               </label>

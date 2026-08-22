@@ -7,6 +7,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { isAdminUser } from '@/lib/supabase/user';
+import { normalizeNpm } from '@/lib/normalize';
 import type { User } from '@supabase/supabase-js';
 import type { ActionState, Visibility } from '@/lib/types';
 
@@ -37,6 +38,11 @@ export async function ensureAlumniProfile(user: User) {
           ? metadata.nama
           : (user.email ?? 'Alumni'),
       angkatan: typeof metadata.angkatan === 'string' ? metadata.angkatan : null,
+      // NPM opsional dari metadata pendaftaran (/daftar); digit-only sudah
+      // divalidasi di signUpAction sebelum masuk metadata.
+      npm: typeof metadata.npm === 'string' && /^\d{1,20}$/.test(metadata.npm)
+        ? metadata.npm
+        : null,
       tahun_lulus:
         typeof metadata.tahun_lulus === 'number'
           ? metadata.tahun_lulus
@@ -86,12 +92,15 @@ export async function updateProfileAction(
   if (visibilitas === 'private' && !isAdminUser(user)) {
     return { error: 'Opsi visibilitas Pribadi hanya tersedia untuk admin.' };
   }
+  const npm = normalizeNpm(String(formData.get('npm') ?? ''));
+  if (npm.error) return { error: npm.error };
 
   const { error } = await supabase
     .from('alumni')
     .update({
       nama,
       angkatan: String(formData.get('angkatan') ?? '').trim() || null,
+      npm: npm.value,
       tahun_lulus: tahunLulus,
       pekerjaan: String(formData.get('pekerjaan') ?? '').trim() || null,
       perusahaan: String(formData.get('perusahaan') ?? '').trim() || null,

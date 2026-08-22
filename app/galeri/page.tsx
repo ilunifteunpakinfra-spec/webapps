@@ -28,6 +28,7 @@ export default async function GaleriPage() {
     event_id: row.event_id,
     nama: row.alumni?.nama ?? null,
     created_at: row.created_at,
+    status: row.status,
   }));
 
   return (

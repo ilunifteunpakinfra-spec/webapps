@@ -69,6 +69,21 @@ export default function RegisterForm() {
             className="input-field"
           />
         </div>
+        <div>
+          <label className="label-mono mb-1 block" htmlFor="npm">
+            NPM <span className="font-normal text-on-surface-variant">(opsional)</span>
+          </label>
+          <input
+            id="npm"
+            name="npm"
+            type="text"
+            inputMode="numeric"
+            pattern="\d*"
+            maxLength={20}
+            placeholder="cth. 054105001"
+            className="input-field"
+          />
+        </div>
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div>

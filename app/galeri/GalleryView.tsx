@@ -11,6 +11,8 @@ export type GalleryPhoto = {
   event_id: string | null;
   nama: string | null;
   created_at: string | null;
+  /** 'pending' foto milik sendiri menunggu moderasi admin. */
+  status?: string;
 };
 
 type GalleryViewProps = {
@@ -157,6 +159,11 @@ export default function GalleryView({ photos, isLoggedIn, children }: GalleryVie
               <span className="pointer-events-none absolute left-2 top-2 flex items-center gap-1 rounded bg-tech-black/80 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-white">
                 <Camera className="h-3 w-3" />
                 {photo.event_id}
+              </span>
+            )}
+            {photo.status === 'pending' && (
+              <span className="pointer-events-none absolute bottom-2 left-2 rounded bg-tech-black/80 px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-white">
+                Menunggu moderasi
               </span>
             )}
             <div className="absolute right-2 top-2 opacity-0 transition-opacity group-hover:opacity-100">

@@ -12,6 +12,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser, hasCapability, isAdminUser } from '@/lib/supabase/user';
+import { normalizeNpm } from '@/lib/normalize';
 import type { AdminCapability } from '@/lib/constants';
 import { revalidatePath } from 'next/cache';
 import type { ActionState, Visibility } from '@/lib/types';
@@ -80,6 +81,8 @@ export async function updateAlumniAdminAction(
   if (!VISIBILITIES.includes(visibilitas)) {
     return { error: 'Visibilitas profil tidak valid.' };
   }
+  const npm = normalizeNpm(String(formData.get('npm') ?? ''));
+  if (npm.error) return { error: npm.error };
 
   const supabase = await createClient();
   const { error } = await supabase
@@ -87,6 +90,7 @@ export async function updateAlumniAdminAction(
     .update({
       nama,
       angkatan: String(formData.get('angkatan') ?? '').trim() || null,
+      npm: npm.value,
       tahun_lulus: tahunLulus,
       pekerjaan: String(formData.get('pekerjaan') ?? '').trim() || null,
       perusahaan: String(formData.get('perusahaan') ?? '').trim() || null,
@@ -108,6 +112,7 @@ export async function updateAlumniAdminAction(
 
   await logActivity(supabase, 'update_alumni', 'alumni', alumniId, {
     nama,
+    npm: npm.value,
     visibilitas,
     status_open_to_work: statusOpenToWork,
     status_verifikasi: statusVerifikasi,

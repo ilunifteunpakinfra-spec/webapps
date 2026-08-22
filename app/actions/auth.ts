@@ -6,6 +6,7 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { getSiteUrl } from '@/lib/utils';
+import { normalizeNpm } from '@/lib/normalize';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { ensureAlumniProfile } from '@/app/actions/alumni';
@@ -54,6 +55,7 @@ export async function signUpAction(
   const noTelepon = String(formData.get('no_telepon') ?? '').trim();
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
   const password = String(formData.get('password') ?? '');
+  const npm = normalizeNpm(String(formData.get('npm') ?? ''));
 
   if (!nama) return { error: 'Nama lengkap wajib diisi.' };
   if (!email || !email.includes('@')) return { error: 'Email tidak valid.' };
@@ -63,6 +65,7 @@ export async function signUpAction(
   if (password.length < 6) {
     return { error: 'Password minimal 6 karakter.' };
   }
+  if (npm.error) return { error: npm.error };
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
@@ -73,6 +76,7 @@ export async function signUpAction(
         role: 'alumni',
         nama,
         angkatan,
+        npm: npm.value,
         tahun_lulus: tahunLulus,
         pekerjaan,
         no_telepon: noTelepon,
