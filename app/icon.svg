@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="6" fill="#e30613"/>
+  <!-- "I" -->
+  <rect x="5" y="7" width="4" height="18" rx="1" fill="#ffffff"/>
+  <!-- "L" vertical -->
+  <rect x="13" y="7" width="4" height="18" rx="1" fill="#ffffff"/>
+  <!-- "L" foot -->
+  <rect x="13" y="21" width="11" height="4" rx="1" fill="#ffffff"/>
+  <!-- circuit node accent -->
+  <circle cx="21.5" cy="11" r="1.8" fill="#ffed00"/>
+</svg>

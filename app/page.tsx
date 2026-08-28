@@ -140,13 +140,16 @@ export default async function Home() {
               di Universitas Pakuan.
             </p>
 
-            {/* Search Bar -> directs to the directory */}
+            {/* Search Bar -> directs to the directory.
+                Fluid responsif: mobile menumpuk (input -> Cari -> Filter),
+                desktop satu baris (input | Filter | Cari) dengan panel
+                filter membentang penuh di bawah saat dibuka. */}
             <form
               method="GET"
               action="/direktori"
-              className="card flex flex-col gap-3 p-4 md:flex-row md:items-center"
+              className="card grid grid-cols-1 gap-2 px-4 py-2 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-center"
             >
-              <div className="relative flex-1">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-on-surface-variant" />
                 <input
                   type="text"
@@ -155,8 +158,14 @@ export default async function Home() {
                   className="input-field pl-9"
                 />
               </div>
+              {/* Cari cepat — hanya mobile (desktop memakai tombol di ujung baris) */}
+              <button type="submit" className="btn-primary md:hidden">
+                <Search className="h-4 w-4" />
+                Cari
+              </button>
               <FilterAccordion
                 activeCount={0}
+                className="md:contents"
                 submitButton={
                   <button type="submit" className="btn-primary w-full">
                     <Search className="h-4 w-4" />
@@ -197,13 +206,13 @@ export default async function Home() {
                       </option>
                     ))}
                   </select>
-                  {/* Submit desktop — mobile memakai tombol sticky di FilterAccordion */}
-                  <button type="submit" className="btn-primary hidden md:inline-flex">
-                    <Search className="h-4 w-4" />
-                    Cari
-                  </button>
                 </div>
               </FilterAccordion>
+              {/* Cari — selalu terlihat di desktop di ujung baris */}
+              <button type="submit" className="btn-primary hidden md:inline-flex">
+                <Search className="h-4 w-4" />
+                Cari
+              </button>
             </form>
           </div>
         </div>

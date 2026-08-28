@@ -50,7 +50,7 @@ export default async function ProfilPage({
 
   const { data: endorsementRows } = await supabase
     .from('endorsements')
-    .select('skill_id, endorser_id, alumni(id, nama)')
+    .select('skill_id, endorser_id, alumni!endorsements_endorser_id_fkey(id, nama)')
     .eq('alumni_id', id);
 
   // supabase-js infers joined relations as arrays; they are objects at runtime.
