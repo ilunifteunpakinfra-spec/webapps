@@ -13,7 +13,7 @@
     "deploy:vercel": "bash scripts/deploy-vercel.sh"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.12.4",
+    "@supabase/ssr": "^0.12.5",
     "@supabase/supabase-js": "^2.112.2",
     "lucide-react": "^1.29.0",
     "next": "^15.5.16",
