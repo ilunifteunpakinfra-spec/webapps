@@ -5,11 +5,20 @@
 /**
  * Base URL used for Supabase redirects (email verification,
  * password reset). Falls back to localhost for development.
+ *
+ * `NEXT_PUBLIC_APP_URL` must be set in production. On Vercel we also accept the
+ * platform-provided deployment URL so a missing app URL cannot silently send
+ * password-reset emails to `http://localhost:3000`.
  */
 export function getSiteUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'http://localhost:3000'
-  );
+  const configured = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '');
+  if (configured) return configured;
+
+  const vercelHost =
+    process.env.NEXT_PUBLIC_VERCEL_URL ?? process.env.VERCEL_URL ?? '';
+  if (vercelHost) return `https://${vercelHost.replace(/\/$/, '')}`;
+
+  return 'http://localhost:3000';
 }
 
 /**
