@@ -23,6 +23,10 @@ const eslintConfig = [
       '.resource/**',
       'next-env.d.ts',
       '*.tsbuildinfo',
+      // Third-party agent skills installed via `npx skills` — not project source.
+      '.agents/skills/**',
+      '.claude/skills/**',
+      '.opencode/skills/**',
     ],
   },
 ];

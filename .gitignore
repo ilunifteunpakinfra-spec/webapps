@@ -42,6 +42,15 @@ coverage/
 *.lcov
 *.lcov.info
 
+# ---------- AGENT SKILLS (third-party, installed via `npx skills`) ----------
+# These are downloaded tooling, not project source. Committing them would add
+# ~40 vendored packages and break `bun run lint` (their CommonJS scripts do
+# not satisfy this repo's eslint config).
+.agents/skills/
+.claude/skills/
+.opencode/skills/
+skills-lock.json
+
 # ---------- LOGS & DEBUG ----------
 logs/
 *.log

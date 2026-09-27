@@ -2,6 +2,14 @@
 // ILUNI FTE WebApps - Shared Types
 // ============================================
 
+import type {
+  ExperienceLevel,
+  JobStatus,
+  JobType,
+  SalaryPeriod,
+  WorkMode,
+} from '@/lib/constants';
+
 export type Visibility = 'public' | 'alumni_only' | 'private';
 
 /** Row shape of the `alumni` table. */
@@ -82,6 +90,30 @@ export type JobPostingRow = {
   link_apply: string | null;
   expired_at: string | null;
   created_at?: string;
+  // --- structured fields (supabase/migrations/0004_job_postings_structured.sql) ---
+  status?: JobStatus;
+  job_type?: JobType | null;
+  work_mode?: WorkMode | null;
+  experience?: ExperienceLevel | null;
+  education?: string | null;
+  salary_min?: number | null;
+  salary_max?: number | null;
+  salary_period?: SalaryPeriod | null;
+  /** `[{ label, value, type }]` — email / whatsapp / phone / website. */
+  contacts?: JobContact[] | null;
+  views_count?: number | null;
+  is_featured?: boolean | null;
+  published_at?: string | null;
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  moderation_note?: string | null;
+};
+
+/** One contact channel on a vacancy posting. */
+export type JobContact = {
+  label: string;
+  value: string;
+  type: 'email' | 'whatsapp' | 'phone' | 'website' | 'other';
 };
 
 /** Row shape returned by the `admin_list_users` RPC (users page). */

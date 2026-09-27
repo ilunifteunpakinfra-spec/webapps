@@ -84,4 +84,45 @@
   .status-dot-inactive {
     @apply inline-block h-2 w-2 rounded-full bg-wire-gray;
   }
+
+  /* ==========================================
+     Job Board tokens (proposal §4.2)
+     Extend the existing system; do not fork it.
+     ========================================== */
+
+  .select-field {
+    @apply input-field appearance-none cursor-pointer;
+  }
+
+  .meta-line {
+    @apply text-sm text-on-surface-variant;
+  }
+
+  .badge-pending {
+    @apply chip border-secondary-container bg-secondary-container/30 text-secondary;
+  }
+
+  .badge-active {
+    @apply chip border-primary-container/30 bg-primary-container/10 text-primary-container;
+  }
+
+  .badge-hidden {
+    @apply chip border-outline-variant bg-surface-container text-on-surface-variant;
+  }
+
+  .badge-rejected {
+    @apply chip border-error-container bg-error-container/30 text-error-on-container;
+  }
+
+  .badge-featured {
+    @apply chip border-circuit-yellow bg-circuit-yellow/20 text-tech-black;
+  }
+
+  .salary-range {
+    @apply font-mono text-sm font-semibold text-on-surface;
+  }
+
+  .filter-bar {
+    @apply sticky top-0 z-20 -mx-5 border-b border-outline-variant bg-surface/95 px-5 py-3 backdrop-blur md:-mx-8 md:px-8;
+  }
 }

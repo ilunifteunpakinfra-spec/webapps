@@ -101,6 +101,151 @@ export async function restoreJobAction(
 }
 
 // ------------------------------------------------------------------
+// Job review gate — capability: moderate_jobs
+// ------------------------------------------------------------------
+// The pending -> active/rejected transition needs an admin because it is the
+// one a non-admin must never perform. The DB guard trigger in migration 0004
+// blocks the same thing at the database level, so this action is the friendly
+// path rather than the only line of defence.
+
+export async function approveJobAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const denied = await requireCapability('moderate_jobs');
+  if (denied) return denied;
+
+  const jobId = readId(formData, 'job_id');
+  if (!jobId) return { error: 'Data lowongan tidak valid.' };
+
+  const supabase = await createClient();
+  const { data: before } = await supabase
+    .from('job_postings')
+    .select('status')
+    .eq('id', jobId)
+    .maybeSingle();
+
+  if (!before) return { error: 'Lowongan tidak ditemukan.' };
+
+  const admin = await getCurrentUser();
+  const { error } = await supabase
+    .from('job_postings')
+    .update({
+      status: 'active',
+      published_at: new Date().toISOString(),
+      reviewed_by: admin?.id ?? null,
+      reviewed_at: new Date().toISOString(),
+      moderation_note: null,
+    })
+    .eq('id', jobId);
+
+  if (error) return { error: error.message };
+
+  await logActivity(supabase, 'approve_job', 'job_postings', jobId, {
+    from: before.status,
+    to: 'active',
+  });
+  revalidatePath('/lowongan');
+  revalidatePath('/lowongan/saya');
+  revalidatePath('/admin/moderation');
+  return { success: true, message: 'Lowongan disetujui dan tayang ke publik.' };
+}
+
+export async function rejectJobAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const denied = await requireCapability('moderate_jobs');
+  if (denied) return denied;
+
+  const jobId = readId(formData, 'job_id');
+  const note = String(formData.get('note') ?? '').trim();
+  if (!jobId) return { error: 'Data lowongan tidak valid.' };
+  // A rejection without a reason is not actionable for the author.
+  if (!note) return { error: 'Alasan penolakan wajib diisi.' };
+
+  const supabase = await createClient();
+  const { data: before } = await supabase
+    .from('job_postings')
+    .select('status')
+    .eq('id', jobId)
+    .maybeSingle();
+
+  if (!before) return { error: 'Lowongan tidak ditemukan.' };
+
+  const admin = await getCurrentUser();
+  const { error } = await supabase
+    .from('job_postings')
+    .update({
+      status: 'rejected',
+      published_at: null,
+      reviewed_by: admin?.id ?? null,
+      reviewed_at: new Date().toISOString(),
+      moderation_note: note,
+    })
+    .eq('id', jobId);
+
+  if (error) return { error: error.message };
+
+  await logActivity(supabase, 'reject_job', 'job_postings', jobId, {
+    from: before.status,
+    to: 'rejected',
+    note,
+  });
+  revalidatePath('/lowongan');
+  revalidatePath('/lowongan/saya');
+  revalidatePath('/admin/moderation');
+  return { success: true, message: 'Lowongan ditolak.' };
+}
+
+export async function featureJobAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const denied = await requireCapability('moderate_jobs');
+  if (denied) return denied;
+
+  const jobId = readId(formData, 'job_id');
+  if (!jobId) return { error: 'Data lowongan tidak valid.' };
+
+  const supabase = await createClient();
+  const { data: before } = await supabase
+    .from('job_postings')
+    .select('is_featured, status')
+    .eq('id', jobId)
+    .maybeSingle();
+
+  if (!before) return { error: 'Lowongan tidak ditemukan.' };
+
+  // Featuring a row that is not public would be invisible; require 'active'.
+  if (before.status !== 'active') {
+    return { error: 'Hanya lowongan aktif yang dapat dijadikan unggulan.' };
+  }
+
+  const next = !before.is_featured;
+  const { error } = await supabase
+    .from('job_postings')
+    .update({ is_featured: next })
+    .eq('id', jobId);
+
+  if (error) return { error: error.message };
+
+  await logActivity(
+    supabase,
+    next ? 'feature_job' : 'unfeature_job',
+    'job_postings',
+    jobId,
+    { is_featured: next }
+  );
+  revalidatePath('/lowongan');
+  revalidatePath('/admin/moderation');
+  return {
+    success: true,
+    message: next ? 'Lowongan ditandai sebagai unggulan.' : 'Penanda unggulan dihapus.',
+  };
+}
+
+// ------------------------------------------------------------------
 // Announcements (soft-hide) — capability: moderate_announcements
 // ------------------------------------------------------------------
 

@@ -75,3 +75,110 @@ export const REPORT_TARGETS = [
 ] as const;
 
 export type ReportTarget = (typeof REPORT_TARGETS)[number];
+
+// ============================================
+// Job Board — structured vacancy vocabulary
+// Mirrors the enums in supabase/migrations/0004_job_postings_structured.sql
+// ============================================
+
+export const JOB_TYPES = [
+  'full_time',
+  'part_time',
+  'contract',
+  'internship',
+  'freelance',
+] as const;
+
+export type JobType = (typeof JOB_TYPES)[number];
+
+export const JOB_TYPE_LABELS: Record<JobType, string> = {
+  full_time: 'Penuh Waktu',
+  part_time: 'Paruh Waktu',
+  contract: 'Kontrak',
+  internship: 'Magang',
+  freelance: 'Freelance',
+};
+
+export const WORK_MODES = ['onsite', 'hybrid', 'remote'] as const;
+
+export type WorkMode = (typeof WORK_MODES)[number];
+
+export const WORK_MODE_LABELS: Record<WorkMode, string> = {
+  onsite: 'Onsite',
+  hybrid: 'Hybrid',
+  remote: 'Remote',
+};
+
+export const EXPERIENCE_LEVELS = [
+  'intern',
+  'junior',
+  'mid',
+  'senior',
+  'lead',
+  'principal',
+] as const;
+
+export type ExperienceLevel = (typeof EXPERIENCE_LEVELS)[number];
+
+export const EXPERIENCE_LABELS: Record<ExperienceLevel, string> = {
+  intern: 'Intern',
+  junior: 'Junior',
+  mid: 'Mid',
+  senior: 'Senior',
+  lead: 'Lead',
+  principal: 'Principal',
+};
+
+export const SALARY_PERIODS = ['hourly', 'monthly', 'yearly'] as const;
+
+export type SalaryPeriod = (typeof SALARY_PERIODS)[number];
+
+export const SALARY_PERIOD_LABELS: Record<SalaryPeriod, string> = {
+  hourly: 'per jam',
+  monthly: 'per bulan',
+  yearly: 'per tahun',
+};
+
+/** Moderation lifecycle of a vacancy posting. */
+export const JOB_STATUSES = [
+  'pending',
+  'active',
+  'hidden',
+  'rejected',
+] as const;
+
+export type JobStatus = (typeof JOB_STATUSES)[number];
+
+export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
+  pending: 'Menunggu Review',
+  active: 'Aktif',
+  hidden: 'Disembunyikan',
+  rejected: 'Ditolak',
+};
+
+/**
+ * Sort order for the admin moderation queue: what needs a decision first.
+ * Lower number sorts first.
+ */
+export const JOB_STATUS_SORT_ORDER: Record<JobStatus, number> = {
+  pending: 0,
+  active: 1,
+  hidden: 2,
+  rejected: 3,
+};
+
+/** Salary bounds (IDR) offered by the "minimum salary" filter. */
+export const SALARY_FILTER_STEPS = [
+  { label: 'Semua', value: null },
+  { label: '≥ 5 jt', value: 5_000_000 },
+  { label: '≥ 10 jt', value: 10_000_000 },
+  { label: '≥ 15 jt', value: 15_000_000 },
+  { label: '≥ 25 jt', value: 25_000_000 },
+  { label: '≥ 50 jt', value: 50_000_000 },
+] as const;
+
+/** Maximum number of skill chips rendered on a card before collapsing. */
+export const JOB_CARD_SKILL_LIMIT = 4;
+
+/** Directory pagination size (server-side). */
+export const JOBS_PAGE_SIZE = 8;
