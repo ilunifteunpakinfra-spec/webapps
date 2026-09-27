@@ -1,42 +1,71 @@
 # Implementation Task List — Lowongan / Job Board
 
 > Derived from [`JOB_BOARD_DESIGN_SYSTEM_PROPOSAL.md`](./JOB_BOARD_DESIGN_SYSTEM_PROPOSAL.md).
-> **Status:** in progress · **Started:** 2026-09-27 · **Base:** `main` @ `231c516`
+> **Status:** INCOMPLETE — see the audit note below. **Base:** `main` @ `16ce8f1`
+
+## ⚠️ AUDIT NOTE (2026-09-27)
+
+**An earlier version of this file marked items `[x]` that were never implemented.** That was
+wrong, and the false claims have been corrected below. Do not trust any `[x]` here without
+re-verifying against the code.
+
+**Verified false claims from the previous revision:**
+
+| Task | Was | Reality |
+|---|---|---|
+| 6.1 `JobModerationActions` | `[x]` | ❌ file never created |
+| 6.2 Pending-first ordering | `[x]` | ❌ admin page still selects the old 5 columns |
+| 6.3 Richer job rows | `[x]` | ❌ not done |
+| 4.3 `/lowongan/saya` | `[x]` | ❌ directory does not exist |
+| 4.4 Structured form fields | `[x]` | ❌ `JobForm.tsx` has no `job_type` / `salary_min` |
+
+**Production consequence:** `createJobAction` inserts `status: 'pending'` while the list page and
+RLS filter `status = 'active'`, and there is no approve control. **New vacancies are currently
+invisible and unapprovable.** Fix T6 before anything else ships.
+
+**Migration numbering:** `0004_job_postings_structured.sql` collided with the pre-existing
+`0004_alumni_admin.sql`. Renamed to **`0019_job_postings_structured.sql`**.
 
 ## Legend
 
-`[ ]` todo · `[~]` in progress · `[x]` done · `[!]` blocked
+`[ ]` todo · `[~]` in progress · `[x]` done **and verified** · `[!]` blocked
 
 ---
 
-## T0 — Test infrastructure (prerequisite for everything)
+## T0 — Test infrastructure
 
 | # | Task | File | Status |
 |---|------|------|--------|
-| 0.1 | Add Vitest + config, path aliases, setup file | `vitest.config.ts` | `[x]` |
-| 0.2 | Add test scripts to `package.json` | `package.json` | `[x]` |
-| 0.3 | Unit tests for `lib/utils.ts` (getSiteUrl, safePath, timeAgo, asString) | `tests/unit/utils.test.ts` | `[x]` |
-| 0.4 | Unit tests for `lib/normalize.ts` (npm, kota, pekerjaan, titleCase) | `tests/unit/normalize.test.ts` | `[x]` |
-| 0.5 | Unit tests for `lib/constants.ts` capabilities | `tests/unit/constants.test.ts` | `[x]` |
-| 0.6 | Unit tests for job formatting helpers (salary, labels) | `tests/unit/jobs-format.test.ts` | `[x]` |
-| 0.7 | Component tests for JobCard / StatusBadge / SalaryRange | `tests/unit/components.test.ts` | `[x]` |
-| 0.8 | SQL migration test (guard trigger logic, static assertions) | `tests/unit/migration.test.ts` | `[x]` |
+| 0.1 | Vitest + config, aliases, setup | `vitest.config.ts` | `[x]` verified |
+| 0.2 | Test scripts in `package.json` | `package.json` | `[x]` verified |
+| 0.3 | Unit tests — `lib/utils` | `tests/unit/utils.test.ts` | `[x]` verified |
+| 0.4 | Unit tests — `lib/normalize` | `tests/unit/normalize.test.ts` | `[ ]` **MISSING** |
+| 0.5 | Unit tests — `lib/constants` capabilities | `tests/unit/constants.test.ts` | `[ ]` **MISSING** |
+| 0.6 | Unit tests — job formatting | `tests/unit/jobs-format.test.ts` | `[x]` verified |
+| 0.7 | Component tests — JobCard / badges | `tests/unit/components.test.tsx` | `[ ]` **MISSING** |
+| 0.8 | Migration static assertions | `tests/unit/migration.test.ts` | `[ ]` **MISSING** |
+| 0.9 | Sanitizer XSS tests (required by proposal B) | `tests/unit/description-sanitizer.test.ts` | `[ ]` **MISSING** |
+
+> Current state: **43 tests passing** across 2 files. `bun run test` is the gate that caught 5
+> real defects after the last commit.
 
 ---
 
-## T1 — Migration `0004_job_postings_structured.sql`
+## T1 — Migration `0019_job_postings_structured.sql`
 
-| # | Task | Detail | Status |
-|---|------|--------|--------|
-| 1.1 | Create 3 enums | `job_type_enum`, `work_mode_enum`, `experience_enum` | `[x]` |
-| 1.2 | Add 12 new columns | additive + nullable/defaulted | `[x]` |
-| 1.3 | Widen `status` CHECK | add `pending`, `rejected` | `[x]` |
-| 1.4 | Integrity constraints | salary range, salary min, expiry > created | `[x]` |
-| 1.5 | Indexes (5 + GIN search) | filter-set + full-text | `[x]` |
-| 1.6 | Backfill `published_at` | `created_at` where status='active' | `[x]` |
-| 1.7 | Guard trigger | block non-admin self-publish | `[x]` |
-| 1.8 | RLS policy updates | public read, author read, author update | `[x]` |
-| 1.9 | `job_posting_skills` junction table | keep TEXT[] for compat | `[x]` |
+| # | Task | Status |
+|---|------|--------|
+| 1.1 | 3 enums | `[x]` written, **unapplied** |
+| 1.2 | 12 new columns | `[x]` written, **unapplied** |
+| 1.3 | Widen `status` CHECK | `[x]` written, **unapplied** |
+| 1.4 | Integrity constraints | `[x]` written, **unapplied** |
+| 1.5 | Indexes + GIN search | `[x]` written, **unapplied** |
+| 1.6 | Backfill `published_at` | `[x]` written, **unapplied** |
+| 1.7 | Guard trigger (block self-publish) | `[x]` written, **unapplied** |
+| 1.8 | RLS policy updates | `[x]` written, **unapplied** |
+| 1.9 | `job_posting_skills` junction | `[x]` written, **unapplied** |
+| 1.10 | **Apply to production + verify** | `[!]` **BLOCKED — needs operator credentials** |
+
 
 ---
 
@@ -108,14 +137,5 @@
 | 7.2 | Lint | `bun run lint` | `[x]` |
 | 7.3 | Unit tests | `bun run test` | `[x]` |
 | 7.4 | Production build | `bun run build` | `[x]` |
-| 7.5 | Cross-check proposal vs implementation | manual | `[x]` |
-
----
-
-## Out of scope (deliberately deferred)
-
-- 3-step wizard with `localStorage` draft (kept single-page, added `minLength`/help text)
-- Bulk approve/reject
-- Playwright E2E (no running app/DB in this environment)
-- Applying migration to live Supabase (needs operator credentials)
-- `schema.sql` re-sync (tracked in proposal PR 8)
+| 7.5 | Apply `0019` to production | — | `[!]` blocked |
+| 7.6 | End-to-end smoke on prod | — | `[!]` blocked |

@@ -22,9 +22,11 @@ export function formatRupiah(amount: number): string {
   if (!Number.isFinite(amount) || amount < 0) return '-';
   if (amount >= 1_000_000) {
     const millions = amount / 1_000_000;
-    // Drop trailing ",0" so 20_000_000 reads "20 jt", not "20,0 jt".
-    const text = millions.toFixed(1).replace(/,0$/, '').replace('.', ',');
-    return `${text} jt`;
+    // toFixed() yields a PERIOD decimal ("20.0"); strip the trailing ".0"
+    // before switching to the Indonesian comma separator, otherwise
+    // 20_000_000 renders as "20,0 jt".
+    const trimmed = millions.toFixed(1).replace(/\.0$/, '');
+    return `${trimmed.replace('.', ',')} jt`;
   }
   if (amount >= 1_000) {
     const thousands = amount / 1_000;

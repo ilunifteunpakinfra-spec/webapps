@@ -1,11 +1,5 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from 'vitest';
-import {
-  getSiteUrl,
-  safePath,
-  timeAgo,
-  formatDate,
-  asString,
-} from '@/lib/utils';
+import { safePath, timeAgo, formatDate, asString } from '@/lib/utils';
 
 describe('safePath', () => {
   it('accepts a normal absolute path', () => {

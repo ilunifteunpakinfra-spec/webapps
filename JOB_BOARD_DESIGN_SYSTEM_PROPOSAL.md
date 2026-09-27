@@ -71,7 +71,10 @@ What is missing is only the **`pending` state in the lifecycle** and the **struc
 
 ## 2. Part 1 — Structured vacancy fields
 
-### 2.1 Proposed schema (additive migration `0004_job_postings_structured.sql`)
+### 2.1 Proposed schema (additive migration `0019_job_postings_structured.sql`)
+
+> **Renamed:** originally drafted as `0004`, which collided with the pre-existing
+> `0004_alumni_admin.sql`. It now runs last, after `0018_gallery_moderation`.
 
 Design principle: **additive, nullable, defaulted** — so the 7 existing columns keep working and no
 row is invalidated. New columns are the source of truth going forward.
@@ -468,7 +471,7 @@ The current single long form mixes identity, logistics, and content. Split:
 
 | # | PR | Contents | Gate |
 |---|---|---|---|
-| 1 | `0004_job_postings_structured.sql` | Columns, enums, constraints, indexes, `published_at` backfill, GIN search | Existing rows unchanged; `status` still `active` |
+| 1 | `0019_job_postings_structured.sql` | Columns, enums, constraints, indexes, `published_at` backfill, GIN search | Existing rows unchanged; `status` still `active` |
 | 2 | Components | `JobCard`, `JobMeta`, `StatusBadge`, `SalaryRange`, `EmptyState` + tokens | Visual parity on `/lowongan` |
 | 3 | Filters | URL-state filtering, `<select>`s, search, salary | `?` params work; no JS needed to filter |
 | 4 | Form | 3-step wizard, validation, skill multi-select, draft save | Reuses `createJobAction` contract |

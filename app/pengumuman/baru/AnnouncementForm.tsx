@@ -3,6 +3,8 @@
 import { useState, useTransition, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { createAnnouncementAction } from '@/app/actions/announcements';
+import RichTextEditor from '@/components/content/RichTextEditor';
+import ImageUploader from '@/components/content/ImageUploader';
 import type { ActionState } from '@/lib/types';
 
 const CATEGORY_OPTIONS = [
@@ -47,6 +49,7 @@ export default function AnnouncementForm() {
           id="judul"
           name="judul"
           type="text"
+          maxLength={120}
           placeholder="Contoh: Reuni Akbar FTE 2026"
           className="input-field"
           required
@@ -57,7 +60,12 @@ export default function AnnouncementForm() {
         <label className="label-mono mb-1 block" htmlFor="kategori">
           Kategori
         </label>
-        <select id="kategori" name="kategori" className="input-field" defaultValue="umum">
+        <select
+          id="kategori"
+          name="kategori"
+          className="select-field"
+          defaultValue="umum"
+        >
           {CATEGORY_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -66,18 +74,14 @@ export default function AnnouncementForm() {
         </select>
       </div>
 
-      <div>
-        <label className="label-mono mb-1 block" htmlFor="isi">
-          Isi Pengumuman
-        </label>
-        <textarea
-          id="isi"
-          name="isi"
-          rows={6}
-          placeholder="Tuliskan detail pengumuman di sini..."
-          className="input-field resize-y"
-        />
-      </div>
+      <RichTextEditor
+        name="isi"
+        label="Isi Pengumuman"
+        rows={10}
+        placeholder={'Tuliskan detail pengumuman di sini...\n\nMendukung format: **tebal**, *miring*, - daftar, > kutipan, [tautan](https://)'}
+      />
+
+      <ImageUploader name="images" />
 
       <div className="flex items-center justify-end gap-3 border-t border-outline-variant pt-4">
         <button
@@ -88,9 +92,10 @@ export default function AnnouncementForm() {
           Batal
         </button>
         <button type="submit" className="btn-primary" disabled={isPending}>
-          {isPending ? 'Menyimpan...' : 'Publikasikan'}
+          {isPending ? 'Mempublikasikan...' : 'Publikasikan'}
         </button>
       </div>
     </form>
   );
 }
+

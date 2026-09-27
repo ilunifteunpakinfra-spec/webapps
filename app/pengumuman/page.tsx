@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Megaphone, Plus, BadgeCheck } from 'lucide-react';
+import { Megaphone, Plus, BadgeCheck, SearchX } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import EmptyState from '@/components/EmptyState';
 import ReportButton from '@/components/ReportButton';
+import type { AnnouncementImage } from '@/components/content/AnnouncementImages';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/supabase/user';
-import { asString } from '@/lib/utils';
+import { asString, timeAgo } from '@/lib/utils';
+import { richTextExcerpt } from '@/lib/content/rich-text';
 
 export const metadata: Metadata = {
   title: 'Pengumuman - ILUNI FT ELEKTRO UNPAK',
@@ -20,12 +23,12 @@ const CATEGORIES = [
 
 type AnnouncementRow = {
   id: string;
-  posted_by: string;
   judul: string;
   isi: string | null;
   kategori: (typeof CATEGORIES)[number]['value'];
   created_at: string | null;
   alumni: { id: string; nama: string } | null;
+  announcement_images: AnnouncementImage[];
 };
 
 type PengumumanSearchParams = {
@@ -34,15 +37,6 @@ type PengumumanSearchParams = {
 
 function categoryLabel(kategori: AnnouncementRow['kategori']): string {
   return CATEGORIES.find((c) => c.value === kategori)?.label ?? 'Umum';
-}
-
-/** "2 hari lalu" style relative time from an ISO timestamp. */
-function daysAgo(iso: string | null | undefined): string {
-  if (!iso) return 'Baru';
-  const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-  if (days <= 0) return 'Hari ini';
-  if (days === 1) return 'Kemarin';
-  return `${days} hari lalu`;
 }
 
 export default async function PengumumanPage({
@@ -58,7 +52,9 @@ export default async function PengumumanPage({
 
   let query = supabase
     .from('announcements')
-    .select('*, alumni(nama)')
+    .select(
+      'id, judul, isi, kategori, created_at, alumni(id, nama), announcement_images(id, public_url, caption, alt_text, position)'
+    )
     .eq('status', 'active')
     .order('created_at', { ascending: false })
     .limit(30);
@@ -68,7 +64,7 @@ export default async function PengumumanPage({
   }
 
   const { data: announcementRows } = await query;
-  const announcements = (announcementRows ?? []) as AnnouncementRow[];
+  const announcements = (announcementRows ?? []) as unknown as AnnouncementRow[];
 
   // Only verified alumni may publish announcements (RLS also enforces this).
   let canPost = false;
@@ -89,8 +85,8 @@ export default async function PengumumanPage({
     <div className="min-h-screen bg-surface">
       <Navbar />
 
-      <div className="mx-auto max-w-[1280px] px-5 py-8 md:px-8">
-        <div className="mb-6 flex items-center justify-between">
+      <div className="mx-auto max-w-container-max px-5 py-8 md:px-8">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h1 className="hero-title mb-2">Pengumuman</h1>
             <p className="text-on-surface-variant">
@@ -99,7 +95,7 @@ export default async function PengumumanPage({
           </div>
           {canPost && (
             <Link href="/pengumuman/baru" className="btn-primary">
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4" aria-hidden="true" />
               Buat Pengumuman
             </Link>
           )}
@@ -110,6 +106,8 @@ export default async function PengumumanPage({
           <Link
             href={buildHref(undefined)}
             className={!kategori ? 'chip-active' : 'chip'}
+            aria-current={!kategori ? 'true' : undefined}
+            aria-pressed={!kategori}
           >
             Semua
           </Link>
@@ -118,6 +116,8 @@ export default async function PengumumanPage({
               key={category.value}
               href={buildHref(kategori === category.value ? undefined : category.value)}
               className={kategori === category.value ? 'chip-active' : 'chip'}
+              aria-current={kategori === category.value ? 'true' : undefined}
+              aria-pressed={kategori === category.value}
             >
               {category.label}
             </Link>
@@ -126,49 +126,113 @@ export default async function PengumumanPage({
 
         {announcements.length > 0 ? (
           <div className="space-y-4">
-            {announcements.map((announcement) => (
-              <article key={announcement.id} className="card-accent">
-                <div className="mb-2 flex flex-wrap items-center gap-2">
-                  <span className="chip-active">{categoryLabel(announcement.kategori)}</span>
-                  <span className="text-sm text-on-surface-variant">
-                    {daysAgo(announcement.created_at)}
-                  </span>
-                </div>
-                <h2 className="font-montserrat text-lg font-bold text-on-surface">
-                  {announcement.judul}
-                </h2>
-                {announcement.isi && (
-                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-on-surface">
-                    {announcement.isi}
-                  </p>
-                )}
-                <div className="mt-3 flex items-center gap-1 border-t border-outline-variant pt-3 text-sm text-on-surface-variant">
-                  <Megaphone className="h-4 w-4" />
-                  <span>
-                    Diposting oleh{' '}
-                    <span className="font-medium text-on-surface">
-                      {announcement.alumni?.nama ?? 'Alumni'}
+            {announcements.map((announcement) => {
+              const excerpt = richTextExcerpt(announcement.isi, 180);
+              const cover = announcement.announcement_images?.[0];
+              return (
+                <article key={announcement.id} className="card-accent">
+                  <div className="mb-2 flex flex-wrap items-center gap-2">
+                    <span className="chip-active">
+                      {categoryLabel(announcement.kategori)}
                     </span>
-                    {announcement.alumni?.nama && (
-                      <BadgeCheck className="ml-1 inline h-3.5 w-3.5 text-primary-container" />
-                    )}
-                  </span>
-                  <span className="ml-auto">
-                    <ReportButton
-                      targetType="announcement"
-                      targetId={announcement.id}
-                      isLoggedIn={Boolean(user)}
-                      className="btn-tertiary px-2 py-1 text-xs"
-                    />
-                  </span>
-                </div>
-              </article>
-            ))}
+                    <time
+                      dateTime={announcement.created_at ?? undefined}
+                      className="text-sm text-on-surface-variant"
+                    >
+                      {timeAgo(announcement.created_at)}
+                    </time>
+                  </div>
+
+                  <h2 className="font-montserrat text-lg font-bold text-on-surface">
+                    <Link
+                      href={`/pengumuman/${announcement.id}`}
+                      className="hover:text-primary-container hover:underline"
+                    >
+                      {announcement.judul}
+                    </Link>
+                  </h2>
+
+                  {excerpt && (
+                    <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">
+                      {excerpt}
+                    </p>
+                  )}
+
+                  {cover && (
+                    <Link
+                      href={`/pengumuman/${announcement.id}`}
+                      className="mt-3 block"
+                      aria-label={`Lihat pengumuman: ${announcement.judul}`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={cover.public_url}
+                        alt={cover.alt_text}
+                        loading="lazy"
+                        className="h-48 w-full rounded border border-outline-variant object-cover"
+                      />
+                    </Link>
+                  )}
+
+                  <div className="mt-3 flex items-center gap-1 border-t border-outline-variant pt-3 text-sm text-on-surface-variant">
+                    <Megaphone className="h-4 w-4" aria-hidden="true" />
+                    <span>
+                      Diposting oleh{' '}
+                      {announcement.alumni?.id ? (
+                        <Link
+                          href={`/profil/${announcement.alumni.id}`}
+                          className="font-medium text-on-surface hover:text-primary-container hover:underline"
+                        >
+                          {announcement.alumni.nama}
+                        </Link>
+                      ) : (
+                        <span className="font-medium text-on-surface">Alumni</span>
+                      )}
+                      {announcement.alumni?.nama && (
+                        <BadgeCheck
+                          className="ml-1 inline h-3.5 w-3.5 text-primary-container"
+                          aria-label="Alumni terverifikasi"
+                        />
+                      )}
+                    </span>
+                    <span className="ml-auto">
+                      <ReportButton
+                        targetType="announcement"
+                        targetId={announcement.id}
+                        isLoggedIn={Boolean(user)}
+                        className="btn-tertiary px-2 py-1 text-xs"
+                      />
+                    </span>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         ) : (
-          <div className="card text-center text-on-surface-variant">
-            Belum ada pengumuman untuk kategori ini.
-          </div>
+          <EmptyState
+            icon={
+              kategori ? (
+                <SearchX className="h-8 w-8 text-on-surface-variant" aria-hidden="true" />
+              ) : (
+                <Megaphone className="h-8 w-8 text-on-surface-variant" aria-hidden="true" />
+              )
+            }
+            title={
+              kategori
+                ? 'Tidak ada pengumuman pada kategori ini'
+                : 'Belum ada pengumuman'
+            }
+            description={
+              kategori
+                ? 'Coba pilih kategori lain untuk melihat pengumuman lainnya.'
+                : 'Jadilah yang pertama berbagi pengumuman untuk komunitas.'
+            }
+            action={
+              kategori
+                ? { href: '/pengumuman', label: 'Lihat semua kategori' }
+                : { href: '/pengumuman/baru', label: 'Buat pengumuman pertama' }
+            }
+          />
         )}
       </div>
     </div>

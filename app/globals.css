@@ -125,4 +125,58 @@
   .filter-bar {
     @apply sticky top-0 z-20 -mx-5 border-b border-outline-variant bg-surface/95 px-5 py-3 backdrop-blur md:-mx-8 md:px-8;
   }
+
+  /* ==========================================
+     Shared rich-text typography.
+     Scoped to .rich-text — deliberately NOT a
+     global prose reset, so it cannot restyle
+     the rest of the app.
+     ========================================== */
+
+  .rich-text { @apply text-sm leading-relaxed text-on-surface; }
+  .rich-text > *:first-child { @apply mt-0; }
+  .rich-text > *:last-child { @apply mb-0; }
+  .rich-text p { @apply mb-3; }
+  .rich-text h3 { @apply font-montserrat text-lg font-bold mt-4 mb-2 text-on-surface; }
+  .rich-text h4 { @apply font-montserrat text-base font-bold mt-3 mb-1 text-on-surface; }
+  .rich-text h5,
+  .rich-text h6 { @apply font-montserrat text-sm font-bold mt-3 mb-1 text-on-surface; }
+  .rich-text ul { @apply list-disc pl-5 mb-3 space-y-1; }
+  .rich-text ol { @apply list-decimal pl-5 mb-3 space-y-1; }
+  .rich-text li > ul,
+  .rich-text li > ol { @apply my-1; }
+  .rich-text a {
+    @apply font-medium text-primary-container underline underline-offset-2
+           hover:text-tech-black;
+  }
+  .rich-text blockquote {
+    @apply border-l-4 border-outline-variant pl-3 my-3 text-on-surface-variant italic;
+  }
+  .rich-text code {
+    @apply font-mono text-xs bg-surface-container px-1 py-0.5 rounded;
+  }
+  .rich-text pre {
+    @apply font-mono text-xs bg-surface-container p-3 rounded my-3 overflow-x-auto;
+  }
+  .rich-text pre code { @apply bg-transparent p-0; }
+  .rich-text hr { @apply border-outline-variant my-4; }
+  .rich-text table { @apply w-full text-sm my-3 border-collapse; }
+  .rich-text th {
+    @apply border-b-2 border-outline-variant py-2 text-left font-mono text-xs uppercase tracking-wider;
+  }
+  .rich-text td { @apply border-b border-outline-variant py-2 align-top; }
+  .rich-text sup,
+  .rich-text sub { @apply text-xs; }
+
+  /* ==========================================
+     Announcement media
+     ========================================== */
+
+  .announcement-img {
+    @apply w-full rounded border border-outline-variant object-cover bg-surface-container;
+  }
+
+  .announcement-gallery { @apply mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2; }
+
+  .announcement-caption { @apply mt-1 text-xs text-on-surface-variant; }
 }

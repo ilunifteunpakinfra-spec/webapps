@@ -48,7 +48,7 @@ describe('formatSalaryRange', () => {
 
   it('falls back to "Negosiasi" when nothing is disclosed', () => {
     expect(formatSalaryRange(null, null)).toBe('Negosiasi');
-    expect(formatSalaryRange(undefined, undefined)).toBe('NegNESOTASI'.replace('NESOTASI', 'gosiasi'));
+    expect(formatSalaryRange(undefined, undefined)).toBe('Negosiasi');
   });
 
   it('treats zero as undisclosed', () => {
